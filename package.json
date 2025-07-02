@@ -25,10 +25,13 @@
   "dependencies": {
     "axios": "^1.5.0",
     "cors": "^2.8.5",
+    "docx": "^8.5.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^11.1.1",
+    "html-docx-js": "^0.3.1",
+    "mammoth": "^1.6.0",
     "mongoose": "^7.5.0",
     "multer": "^1.4.5-lts.1",
     "openai": "^4.20.1",
@@ -36,10 +39,8 @@
     "pdf-lib": "^1.17.1",
     "pdf-merger-js": "^4.3.0",
     "pdf-parse": "^1.1.1",
-    "sharp": "^0.32.5",
-    "mammoth": "^1.6.0",
-    "docx": "^8.5.0",
-    "html-docx-js": "^0.3.1"
+    "qrcode": "^1.5.4",
+    "sharp": "^0.32.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

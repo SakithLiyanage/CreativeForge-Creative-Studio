@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import ImageGenerator from './pages/ImageGenerator';
 import MediaConverter from './pages/MediaConverter';
 import DocumentProcessor from './pages/DocumentProcessor';
+import QRGenerator from './pages/QRGenerator';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Route path="/generate" element={<ImageGenerator />} />
             <Route path="/convert" element={<MediaConverter />} />
             <Route path="/documents" element={<DocumentProcessor />} />
+            <Route path="/qr" element={<QRGenerator />} />
           </Routes>
         </main>
       </div>

@@ -12,7 +12,8 @@ import {
   IoDownload,
   IoStar,
   IoSwapHorizontal,
-  IoDocumentText
+  IoDocumentText,
+  IoQrCode
 } from 'react-icons/io5';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -109,67 +110,97 @@ const Dashboard = () => {
       color: 'from-green-500 to-blue-500',
       path: '/documents',
       count: 0
+    },
+    {
+      name: 'QR Code Generator',
+      description: 'Generate professional QR codes for any content',
+      icon: IoQrCode,
+      color: 'from-orange-500 to-red-500',
+      path: '/qr',
+      count: 0
     }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 content-with-navbar">
       
-      {/* Floating Background Elements */}
+      {/* Enhanced Floating Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-indigo-200/30 to-purple-200/30 rounded-full animate-float-elegant"></div>
-        <div className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-r from-pink-200/20 to-rose-200/20 rounded-full animate-float-elegant delay-300"></div>
-        <div className="absolute bottom-20 left-40 w-72 h-72 bg-gradient-to-r from-cyan-200/25 to-blue-200/25 rounded-full animate-float-elegant delay-600"></div>
+        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-indigo-200/20 to-purple-200/20 rounded-full animate-float-elegant blur-3xl"></div>
+        <div className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-r from-pink-200/15 to-rose-200/15 rounded-full animate-float-elegant delay-300 blur-2xl"></div>
+        <div className="absolute bottom-20 left-40 w-72 h-72 bg-gradient-to-r from-cyan-200/20 to-blue-200/20 rounded-full animate-float-elegant delay-600 blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-violet-100/10 to-purple-100/10 rounded-full animate-pulse"></div>
       </div>
 
       <div className="relative py-20 px-6">
         <div className="max-w-7xl mx-auto">
           
-          {/* Hero Section */}
-          <div className="text-center mb-20 animate-slide-up-fade">
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 rounded-full border border-indigo-100 mb-8">
-              <IoSparkles className="text-indigo-500 animate-bounce-gentle" />
-              <span className="text-sm font-semibold gradient-text">CreativeForge AI Platform</span>
+          {/* Enhanced Hero Section */}
+          <div className="text-center mb-24 animate-slide-up-fade">
+            <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-indigo-50 to-purple-50 px-8 py-4 rounded-full border border-indigo-100 mb-12 shadow-lg backdrop-blur-sm">
+              <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                <IoSparkles className="text-white animate-pulse" />
+              </div>
+              <span className="text-sm font-bold gradient-text">CreativeForge AI Platform</span>
+              <div className="px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full">
+                <span className="text-xs font-bold text-green-700">✨ Beta</span>
+              </div>
             </div>
             
-            <h1 className="text-7xl md:text-9xl font-black mb-8 leading-tight text-display">
+            <h1 className="text-8xl md:text-9xl font-black mb-8 leading-tight text-display tracking-tight">
               <span className="gradient-text-flow">Creative</span>
               <br />
-              <span className="text-gray-900">Dashboard</span>
+              <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">Dashboard</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed mb-12">
-              Transform your creative vision into reality with CreativeForge's comprehensive suite of AI-powered tools
+            <p className="text-2xl md:text-3xl text-gray-600 max-w-5xl mx-auto font-light leading-relaxed mb-16">
+              Transform your creative vision into reality with our comprehensive suite of 
+              <span className="gradient-text font-semibold"> AI-powered tools</span>
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link to="/generate" className="btn-primary">
-                <IoSparkles className="inline mr-2" />
-                Start Creating
+            <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
+              <Link to="/generate" className="group relative">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+                <button className="relative btn-primary text-lg px-8 py-4">
+                  <IoSparkles className="inline mr-3 text-xl" />
+                  Start Creating
+                </button>
               </Link>
-              <Link to="/convert" className="btn-secondary">
-                <IoSwapHorizontal className="inline mr-2" />
-                Convert Media
+              
+              <Link to="/convert" className="group">
+                <button className="btn-secondary text-lg px-8 py-4 group-hover:shadow-xl transition-all duration-300">
+                  <IoSwapHorizontal className="inline mr-3 text-xl" />
+                  Convert Media
+                </button>
+              </Link>
+              
+              <Link to="/documents" className="group">
+                <button className="btn-secondary text-lg px-8 py-4 group-hover:shadow-xl transition-all duration-300">
+                  <IoDocumentText className="inline mr-3 text-xl" />
+                  Process Documents
+                </button>
               </Link>
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20">
+          {/* Enhanced Stats Grid with Visual Improvements */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-24">
             {[
               {
                 label: 'Images Generated', 
                 value: animatedStats.totalImages || 0, 
                 icon: IoSparkles, 
                 gradient: 'from-indigo-500 to-purple-500',
-                bgGradient: 'from-indigo-50 to-purple-50'
+                bgGradient: 'from-indigo-50 to-purple-50',
+                trend: '+12%'
               },
               { 
                 label: 'Files Converted', 
                 value: animatedStats.totalConversions || 0, 
                 icon: IoVideocam, 
                 gradient: 'from-blue-500 to-cyan-500',
-                bgGradient: 'from-blue-50 to-cyan-50'
+                bgGradient: 'from-blue-50 to-cyan-50',
+                trend: '+8%'
               },
               { 
                 label: 'Storage Used', 
@@ -177,119 +208,179 @@ const Dashboard = () => {
                 unit: 'MB',
                 icon: IoServer, 
                 gradient: 'from-green-500 to-teal-500',
-                bgGradient: 'from-green-50 to-teal-50'
+                bgGradient: 'from-green-50 to-teal-50',
+                trend: '+15%'
               },
               { 
                 label: 'Total Projects', 
                 value: animatedStats.totalProjects || 0, 
                 icon: IoHeart, 
                 gradient: 'from-pink-500 to-rose-500',
-                bgGradient: 'from-pink-50 to-rose-50'
+                bgGradient: 'from-pink-50 to-rose-50',
+                trend: '+20%'
               }
             ].map((stat, index) => (
               <div 
                 key={index} 
-                className={`card-modern hover-lift animate-slide-up-fade delay-${index * 75} bg-gradient-to-br ${stat.bgGradient}`}
+                className={`group relative card-modern hover-lift animate-slide-up-fade delay-${index * 75} bg-gradient-to-br ${stat.bgGradient} border-0 shadow-xl`}
               >
-                <div className="flex items-center justify-between mb-6">
-                  <div className={`w-14 h-14 bg-gradient-to-r ${stat.gradient} rounded-2xl flex items-center justify-center shadow-lg`}>
-                    <stat.icon className="text-white text-2xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-white/30 rounded-3xl"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className={`w-16 h-16 bg-gradient-to-r ${stat.gradient} rounded-3xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
+                      <stat.icon className="text-white text-2xl" />
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                        {stat.trend}
+                      </div>
+                    </div>
                   </div>
+                  <div className="text-4xl font-black gradient-text mb-2">
+                    {stat.value.toLocaleString()}{stat.unit || ''}
+                  </div>
+                  <p className="text-gray-700 font-semibold text-lg">{stat.label}</p>
                 </div>
-                <div className="text-4xl font-black gradient-text mb-2">
-                  {stat.value.toLocaleString()}{stat.unit || ''}
-                </div>
-                <p className="text-gray-600 font-semibold">{stat.label}</p>
               </div>
             ))}
           </div>
 
-          {/* Tools Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-            {tools.map((tool, index) => (
-              <Link
-                key={index}
-                to={tool.path}
-                className="group card-modern hover-lift animate-slide-up-fade"
-                style={{animationDelay: `${index * 150}ms`}}
-              >
-                {tool.popular && (
-                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg">
-                    ⭐ Popular
-                  </div>
-                )}
-
-                <div className={`w-20 h-20 bg-gradient-to-r ${tool.color} rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                  <tool.icon className="text-white text-3xl" />
-                </div>
-
-                <h3 className="text-2xl font-black gradient-text mb-4">
-                  {tool.name}
-                </h3>
-                
-                <p className="text-gray-600 leading-relaxed mb-6 text-body">
-                  {tool.description}
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <div className="bg-gray-50 px-4 py-2 rounded-xl">
-                    <span className="text-sm font-semibold text-gray-600">
-                      {tool.count} created
-                    </span>
-                  </div>
-                  <div className="flex items-center text-indigo-600 font-bold opacity-0 group-hover:opacity-100 transform translate-x-[-20px] group-hover:translate-x-0 transition-all duration-300">
-                    <span className="mr-2">Launch</span>
-                    <IoTrendingUp className="w-5 h-5" />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Recent Activity */}
-          {recentActivity.length > 0 && (
-            <div className="card-modern animate-slide-up-fade delay-600">
-              <h3 className="text-3xl font-black gradient-text mb-8 flex items-center">
-                <IoTime className="mr-4 text-indigo-500" />
-                Recent Activity
-              </h3>
-              <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center space-x-6 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-200">
-                    <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center">
-                      <IoSparkles className="text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">
-                        {activity.prompt}
-                      </p>
-                      <p className="text-gray-500 text-sm">
-                        {new Date(activity.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {/* Enhanced Tools Grid with Better Visual Hierarchy */}
+          <div className="mb-24">
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-black gradient-text mb-4">Creative Tools</h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Professional-grade tools powered by cutting-edge AI technology
+              </p>
             </div>
-          )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {tools.map((tool, index) => (
+                <Link
+                  key={index}
+                  to={tool.path}
+                  className="group relative"
+                  style={{animationDelay: `${index * 150}ms`}}
+                >
+                  {/* Glow Effect */}
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl blur opacity-0 group-hover:opacity-25 transition duration-1000"></div>
+                  
+                  <div className="relative card-modern hover-lift animate-slide-up-fade bg-white/80 backdrop-blur-sm border-0 shadow-2xl overflow-hidden">
+                    {tool.popular && (
+                      <div className="absolute -top-4 -right-4 z-10">
+                        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black px-6 py-2 rounded-full shadow-lg animate-bounce">
+                          ⭐ Popular
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Background Pattern */}
+                    <div className="absolute top-0 right-0 w-32 h-32 opacity-5">
+                      <div className={`w-full h-full bg-gradient-to-br ${tool.color} rounded-full blur-2xl`}></div>
+                    </div>
+
+                    <div className="relative p-10">
+                      <div className={`w-24 h-24 bg-gradient-to-r ${tool.color} rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-2xl`}>
+                        <tool.icon className="text-white text-4xl" />
+                      </div>
+
+                      <h3 className="text-3xl font-black gradient-text mb-4 group-hover:gradient-text-flow transition-all duration-300">
+                        {tool.name}
+                      </h3>
+                      
+                      <p className="text-gray-600 leading-relaxed mb-8 text-lg">
+                        {tool.description}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-3 rounded-2xl border border-gray-200">
+                          <span className="text-sm font-bold text-gray-700">
+                            {tool.count} created
+                          </span>
+                        </div>
+                        <div className="flex items-center text-indigo-600 font-black opacity-0 group-hover:opacity-100 transform translate-x-[-20px] group-hover:translate-x-0 transition-all duration-500">
+                          <span className="mr-3 text-lg">Launch</span>
+                          <IoTrendingUp className="w-6 h-6" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* New Features Showcase Section */}
+          <div className="mb-24">
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-black gradient-text mb-4">Why Choose CreativeForge?</h2>
+              <p className="text-xl text-gray-600 max-w-4xl mx-auto">
+                Experience the next generation of creative tools with advanced AI capabilities
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+                {
+                  icon: IoSparkles,
+                  title: 'AI-Powered',
+                  description: 'Cutting-edge artificial intelligence drives every tool',
+                  color: 'from-purple-500 to-pink-500'
+                },
+                {
+                  icon: IoTrendingUp,
+                  title: 'Lightning Fast',
+                  description: 'Optimized performance for instant results',
+                  color: 'from-blue-500 to-cyan-500'
+                },
+                {
+                  icon: IoServer,
+                  title: 'Cloud Ready',
+                  description: 'Seamless cloud integration and storage',
+                  color: 'from-green-500 to-teal-500'
+                },
+                {
+                  icon: IoHeart,
+                  title: 'User Friendly',
+                  description: 'Intuitive interface designed for creators',
+                  color: 'from-pink-500 to-rose-500'
+                }
+              ].map((feature, index) => (
+                <div key={index} className={`group text-center animate-slide-up-fade delay-${index * 100}`}>
+                  <div className={`w-20 h-20 bg-gradient-to-r ${feature.color} rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl`}>
+                    <feature.icon className="text-white text-3xl" />
+                  </div>
+                  <h3 className="text-2xl font-black text-gray-900 mb-3">{feature.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Floating Action Panel */}
+      {/* Enhanced Floating Action Panel */}
       <div className="fixed bottom-8 right-8 z-50">
-        <div className="card-glass p-4 rounded-3xl shadow-elegant">
-          <div className="flex space-x-3">
+        <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-2xl border border-white/20">
+          <div className="flex space-x-4">
             {[
-              { to: '/generate', icon: IoSparkles, gradient: 'from-indigo-500 to-purple-500' },
-              { to: '/convert', icon: IoVideocam, gradient: 'from-blue-500 to-cyan-500' },
-              { to: '/documents', icon: IoDocumentText, gradient: 'from-green-500 to-teal-500' }
+              { to: '/generate', icon: IoSparkles, gradient: 'from-indigo-500 to-purple-500', label: 'Generate' },
+              { to: '/convert', icon: IoVideocam, gradient: 'from-blue-500 to-cyan-500', label: 'Convert' },
+              { to: '/documents', icon: IoDocumentText, gradient: 'from-green-500 to-teal-500', label: 'Documents' },
+              { to: '/qr', icon: IoQrCode, gradient: 'from-orange-500 to-red-500', label: 'QR Codes' }
             ].map((action, index) => (
               <Link
                 key={index}
                 to={action.to}
-                className={`w-14 h-14 bg-gradient-to-r ${action.gradient} rounded-2xl flex items-center justify-center hover-scale shadow-lg`}
+                className="group flex flex-col items-center space-y-2"
+                title={action.label}
               >
-                <action.icon className="text-white text-xl" />
+                <div className={`w-16 h-16 bg-gradient-to-r ${action.gradient} rounded-2xl flex items-center justify-center hover-scale shadow-xl group-hover:shadow-2xl transition-all duration-300`}>
+                  <action.icon className="text-white text-2xl" />
+                </div>
+                <span className="text-xs font-semibold text-gray-600 group-hover:text-gray-900 transition-colors duration-200">
+                  {action.label}
+                </span>
               </Link>
             ))}
           </div>

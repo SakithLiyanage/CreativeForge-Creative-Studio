@@ -5,6 +5,7 @@ import {
   IoSparkles, 
   IoSwapHorizontal, 
   IoDocumentText,
+  IoQrCode,
   IoMenu,
   IoClose
 } from 'react-icons/io5';
@@ -61,7 +62,8 @@ const AdvancedNavbar = () => {
               { path: '/', label: 'Dashboard', icon: IoHome },
               { path: '/generate', label: 'AI Studio', icon: IoSparkles },
               { path: '/convert', label: 'Media', icon: IoSwapHorizontal },
-              { path: '/documents', label: 'Documents', icon: IoDocumentText }
+              { path: '/documents', label: 'Documents', icon: IoDocumentText },
+              { path: '/qr', label: 'QR Codes', icon: IoQrCode }
             ].map((item) => {
               const IconComponent = item.icon;
               return (
@@ -107,7 +109,8 @@ const AdvancedNavbar = () => {
                 { path: '/', label: 'Dashboard', icon: IoHome },
                 { path: '/generate', label: 'AI Studio', icon: IoSparkles },
                 { path: '/convert', label: 'Media', icon: IoSwapHorizontal },
-                { path: '/documents', label: 'Documents', icon: IoDocumentText }
+                { path: '/documents', label: 'Documents', icon: IoDocumentText },
+                { path: '/qr', label: 'QR Codes', icon: IoQrCode }
               ].map((item) => {
                 const IconComponent = item.icon;
                 return (

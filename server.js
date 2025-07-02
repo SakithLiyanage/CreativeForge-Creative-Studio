@@ -109,6 +109,7 @@ app.use('/api/images', require('./routes/images'));
 app.use('/api/convert', require('./routes/convert'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/documents', require('./routes/documents'));
+app.use('/api/qr', require('./routes/qr'));
 
 // Static file serving for uploaded images and documents
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
