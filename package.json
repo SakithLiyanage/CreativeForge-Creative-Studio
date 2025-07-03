@@ -24,6 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^1.5.0",
+    "cloudconvert": "^2.3.7",
     "cors": "^2.8.5",
     "docx": "^8.5.0",
     "dotenv": "^16.3.1",

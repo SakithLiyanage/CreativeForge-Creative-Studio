@@ -83,7 +83,7 @@ const DocumentProcessor = () => {
       const formData = new FormData();
       
       if (tools.find(t => t.id === activeTab)?.multiple) {
-        files.forEach(file => formData.append('files', file));
+        files.forEach(file => formData.append('file', file));
       } else {
         formData.append('file', files[0]);
       }

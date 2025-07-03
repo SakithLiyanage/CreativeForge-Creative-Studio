@@ -29,6 +29,9 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Static file serving for uploaded images and documents
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Add specific static serving for converted files
+app.use('/uploads/converted', express.static(path.join(__dirname, 'uploads/converted')));
+
 // Static file serving for documents with proper headers
 app.use('/uploads/documents', express.static(path.join(__dirname, 'uploads/documents'), {
   setHeaders: (res, filePath) => {
