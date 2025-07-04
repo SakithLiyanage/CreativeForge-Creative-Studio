@@ -32,45 +32,102 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
-  storage,
-  limits: { 
-    fileSize: 50 * 1024 * 1024 // 50MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/msword',
-      'text/plain'
+// --- Robust Upload Middleware (copied from convert.js, but with documentsDir) ---
+const createUploadMiddleware = () => {
+  return (req, res, next) => {
+    console.log('📤 Document upload middleware called');
+    console.log('📋 Content-Type:', req.headers['content-type']);
+    // Create multer instance for this request
+    const uploadInstance = multer({
+      storage,
+      limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB limit
+        files: 10
+      },
+      fileFilter: (req, file, cb) => {
+        console.log('📁 Document file received:', {
+          fieldname: file.fieldname,
+          originalname: file.originalname,
+          mimetype: file.mimetype
+        });
+        cb(null, true); // Accept all files
+      }
+    });
+    const tryUploads = [
+      () => uploadInstance.array('files', 10),
+      () => uploadInstance.single('file'),
+      () => uploadInstance.any()
     ];
-    
-    const isValidFile = allowedTypes.includes(file.mimetype) || 
-                       file.originalname.match(/\.(pdf|docx|doc|txt)$/i);
-    
-    cb(null, isValidFile);
-  }
-});
+    let currentTry = 0;
+    const attemptUpload = () => {
+      if (currentTry >= tryUploads.length) {
+        console.error('❌ All document upload attempts failed');
+        return res.status(400).json({
+          error: 'File upload failed',
+          message: 'No files found in request'
+        });
+      }
+      const uploadFn = tryUploads[currentTry];
+      currentTry++;
+      uploadFn()(req, res, (err) => {
+        if (err) {
+          console.log(`❌ Document upload attempt ${currentTry} failed:`, err.code);
+          if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+            return attemptUpload();
+          } else {
+            return res.status(400).json({
+              error: 'File upload failed',
+              message: err.message
+            });
+          }
+        }
+        // Success - normalize the files array
+        if (req.file && !req.files) {
+          req.files = [req.file];
+        } else if (!req.files && req.file) {
+          req.files = [req.file];
+        } else if (!req.files) {
+          req.files = [];
+        }
+        console.log('✅ Document upload successful, files:', req.files.length);
+        next();
+      });
+    };
+    attemptUpload();
+  };
+};
+const robustDocumentUpload = createUploadMiddleware();
 
 // PDF Merger
-router.post('/merge-pdf', upload.array('files'), async (req, res) => {
+router.post('/merge-pdf', robustDocumentUpload, async (req, res) => {
   try {
     console.log('📄 PDF merge request received');
+    console.log('Files received:', req.files?.length || 0);
+    console.log('All files:', req.files?.map(f => ({ name: f.originalname, type: f.mimetype })));
     
-    if (!req.files || req.files.length < 2) {
-      return res.status(400).json({ error: 'At least 2 PDF files are required' });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
+
+    if (req.files.length < 2) {
+      return res.status(400).json({ error: `Only ${req.files.length} file(s) uploaded. At least 2 PDF files are required for merging.` });
+    }
+
+    // Filter only PDF files
+    const pdfFiles = req.files.filter(file => file.mimetype === 'application/pdf');
+    
+    if (pdfFiles.length < 2) {
+      return res.status(400).json({ error: 'At least 2 PDF files are required for merging' });
     }
 
     const merger = new PDFMerger();
     
     // Add all PDF files to merger
-    for (const file of req.files) {
-      if (file.mimetype === 'application/pdf') {
-        await merger.add(file.path);
-      }
+    for (const file of pdfFiles) {
+      await merger.add(file.path);
     }
 
-    const outputPath = path.join(path.dirname(req.files[0].path), `merged-${Date.now()}.pdf`);
+    const outputPath = path.join(path.dirname(pdfFiles[0].path), `merged-${Date.now()}.pdf`);
     await merger.save(outputPath);
 
     // Clean up input files
@@ -89,7 +146,7 @@ router.post('/merge-pdf', upload.array('files'), async (req, res) => {
       downloadUrl: `/api/documents/download/${outputFilename}`,
       filename: outputFilename,
       fileSize: stats.size,
-      pagesCount: req.files.length // Approximate
+      pagesCount: pdfFiles.length
     });
 
   } catch (error) {
@@ -102,16 +159,18 @@ router.post('/merge-pdf', upload.array('files'), async (req, res) => {
 });
 
 // DOCX to PDF Converter
-router.post('/docx-to-pdf', upload.single('file'), async (req, res) => {
+router.post('/docx-to-pdf', robustDocumentUpload, async (req, res) => {
   try {
     console.log('📝 DOCX to PDF conversion request');
+    console.log('Files received:', req.files?.length || 0);
     
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    const file = req.files[0];
     // Extract text from DOCX
-    const docxBuffer = fs.readFileSync(req.file.path);
+    const docxBuffer = fs.readFileSync(file.path);
     const result = await mammoth.extractRawText({ buffer: docxBuffer });
     const text = result.value;
 
@@ -165,14 +224,14 @@ router.post('/docx-to-pdf', upload.single('file'), async (req, res) => {
 
     // Save PDF
     const pdfBytes = await pdfDoc.save();
-    const outputFilename = path.basename(req.file.path, path.extname(req.file.path)) + '.pdf';
-    const outputPath = path.join(path.dirname(req.file.path), outputFilename);
+    const outputFilename = path.basename(file.path, path.extname(file.path)) + '.pdf';
+    const outputPath = path.join(path.dirname(file.path), outputFilename);
     
     fs.writeFileSync(outputPath, pdfBytes);
 
     // Clean up input file
-    if (fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    if (fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
     }
 
     const stats = fs.statSync(outputPath);
@@ -182,7 +241,7 @@ router.post('/docx-to-pdf', upload.single('file'), async (req, res) => {
       message: 'DOCX converted to PDF successfully',
       downloadUrl: `/api/documents/download/${outputFilename}`,
       filename: outputFilename,
-      originalName: req.file.originalname,
+      originalName: file.originalname,
       fileSize: stats.size,
       convertedFormat: 'PDF'
     });
@@ -197,64 +256,145 @@ router.post('/docx-to-pdf', upload.single('file'), async (req, res) => {
 });
 
 // PDF to DOCX Converter
-router.post('/pdf-to-docx', upload.single('file'), async (req, res) => {
+router.post('/pdf-to-docx', robustDocumentUpload, async (req, res) => {
   try {
     console.log('📄 PDF to DOCX conversion request');
+    console.log('Files received:', req.files?.length || 0);
     
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Extract text from PDF
-    const pdfBuffer = fs.readFileSync(req.file.path);
-    const pdfData = await pdfParse(pdfBuffer);
-    
-    // Create DOCX document
-    const paragraphs = pdfData.text.split('\n')
-      .filter(line => line.trim().length > 0)
-      .map(line => 
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: line.trim(),
-              size: 24, // 12pt font
-            }),
-          ],
-        })
-      );
-
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: paragraphs,
-      }],
-    });
-
-    // Generate DOCX buffer
-    const buffer = await Packer.toBuffer(doc);
-    
-    const outputFilename = path.basename(req.file.path, path.extname(req.file.path)) + '.docx';
-    const outputPath = path.join(path.dirname(req.file.path), outputFilename);
-    
-    fs.writeFileSync(outputPath, buffer);
-
-    // Clean up input file
-    if (fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    const file = req.files[0];
+    if (file.mimetype !== 'application/pdf') {
+      return res.status(400).json({ error: 'Only PDF files are supported' });
     }
 
-    const stats = fs.statSync(outputPath);
+    // Try enhanced PDF parsing with better error handling
+    try {
+      const pdfBuffer = fs.readFileSync(file.path);
+      
+      // Use pdf-parse with more lenient options
+      const pdfData = await pdfParse(pdfBuffer, {
+        // More lenient parsing options
+        normalizeWhitespace: false,
+        disableCombineTextItems: false
+      });
 
-    res.json({
-      success: true,
-      message: 'PDF converted to DOCX successfully',
-      downloadUrl: `/api/documents/download/${outputFilename}`,
-      filename: outputFilename,
-      originalName: req.file.originalname,
-      fileSize: stats.size,
-      convertedFormat: 'DOCX',
-      extractedText: pdfData.text.substring(0, 200) + '...'
-    });
+      // Create DOCX document
+      const paragraphs = pdfData.text.split('\n')
+        .filter(line => line.trim().length > 0)
+        .map(line => 
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: line.trim(),
+                size: 24, // 12pt font
+              }),
+            ],
+          })
+        );
+
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: paragraphs,
+        }],
+      });
+
+      // Generate DOCX buffer
+      const buffer = await Packer.toBuffer(doc);
+      
+      const outputFilename = path.basename(file.path, path.extname(file.path)) + '.docx';
+      const outputPath = path.join(path.dirname(file.path), outputFilename);
+      
+      fs.writeFileSync(outputPath, buffer);
+
+      // Clean up input file
+      if (fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+
+      const stats = fs.statSync(outputPath);
+
+      res.json({
+        success: true,
+        message: 'PDF converted to DOCX successfully',
+        downloadUrl: `/api/documents/download/${outputFilename}`,
+        filename: outputFilename,
+        originalName: file.originalname,
+        fileSize: stats.size,
+        convertedFormat: 'DOCX',
+        extractedText: pdfData.text.substring(0, 200) + '...'
+      });
+
+    } catch (pdfError) {
+      console.error('❌ PDF parsing failed, trying CloudConvert fallback:', pdfError.message);
+      
+      // Fallback to CloudConvert for problematic PDFs
+      try {
+        const CloudConvert = require('cloudconvert');
+        const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiZWMyZWYxOGE1ZmNkMWE3YTQwOTI0Y2FiMTVmOGI4NTI4ODQ0MzM4ZTNhMGYzNTBjNmFhMmMxM2U4ZjQyZDViYTk4OWI2NDIzNzQ5MDllNjciLCJpYXQiOjE3NTE1MzYxNDUuOTUxMjg1LCJuYmYiOjE3NTE1MzYxNDUuOTUxMjg3LCJleHAiOjQ5MDcyMDk3NDUuOTQ2Mjg3LCJzdWIiOiI3MjM1MTYxNCIsInNjb3BlcyI6WyJ1c2VyLnJlYWQiLCJ1c2VyLndyaXRlIiwidGFzay5yZWFkIiwidGFzay53cml0ZSIsIndlYmhvb2sucmVhZCIsIndlYmhvb2sud3JpdGUiLCJwcmVzZXQucmVhZCIsInByZXNldC53cml0ZSJdfQ.ogRr0j9CzyPvdp9qlMafhpw99UHtZV3iDFbodqvGMFBnS3qJWH72cwbAJz9ooFfCJUWTJIsDQBVwhybiMM7WbbglK0w9K5bnPS6mPPMm96QEhf8gXBwRfmM9uNU2CpAvCzjP9ZSUcAOAjO0Mc07slKq7tfRsoFBPbS28zLFgM_oRJQTKXMqqYpr4_9G64JPIouOytHwlSXBFa4A4EzVhuNF2qt6AGE8nb1Iyu1b2ZXSAbYHrVRrC9RgrxIfFOwAwn5mkP8xFPrLujVOyo38JuNymPwOKSzn_3SYBiqtwVkB2NLjIc1PhqS87V1wHWRQPhNfcEjktxovo_sKPknuAVdZNbw4ruApfyG0z6-R4O7qppTxSajaNoUtIkTDUZpL0_1XpB9WZVHALfjJ_GAFL6-j0CaHEVrrMNz9GUgxnY0vzk1tOwRnGurKUVV3mN1AhwSxaRCsOV11p2lYSUFJdHlz4sTMbDD-Q-oVV4u1etQM76q2e-dnarY773HWvvMQOodwyWqd9gFOCYIPqatO88cjg1JjI-OYvgOgc4sSdX_VskHry9m_e8J7OLnW1zbVnCv2mPbSAu2D7_wvNrp58IAQbMNdr7c9I3fFLdpxcNXu85uepDTgjH4Mpge2T7ujT_Rfjiumd_b3Cm8atzZkqASZzeK5jVvUJI8o-I37XHCo');
+
+        const job = await cloudConvert.jobs.create({
+          tasks: {
+            'import-file': {
+              operation: 'import/upload'
+            },
+            'convert-file': {
+              operation: 'convert',
+              input: 'import-file',
+              output_format: 'docx'
+            },
+            'export-file': {
+              operation: 'export/url',
+              input: 'convert-file'
+            }
+          }
+        });
+
+        const uploadTask = job.tasks.filter(task => task.name === 'import-file')[0];
+        const inputFile = fs.createReadStream(file.path);
+        
+        await cloudConvert.tasks.upload(uploadTask, inputFile, file.originalname);
+        const completedJob = await cloudConvert.jobs.wait(job.id);
+        
+        const exportTask = completedJob.tasks.filter(
+          task => task.operation === 'export/url' && task.status === 'finished'
+        )[0];
+        
+        const downloadUrl = exportTask.result.files[0].url;
+
+        // Clean up input file
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+
+        res.json({
+          success: true,
+          message: 'PDF converted to DOCX using CloudConvert',
+          downloadUrl: downloadUrl,
+          filename: `${path.basename(file.originalname, path.extname(file.originalname))}.docx`,
+          originalName: file.originalname,
+          convertedFormat: 'DOCX (CloudConvert)',
+          note: 'Converted using CloudConvert due to PDF parsing issues'
+        });
+
+      } catch (cloudError) {
+        console.error('❌ CloudConvert fallback also failed:', cloudError.message);
+        
+        // Final fallback: return error with helpful message
+        res.status(500).json({
+          success: false,
+          error: 'PDF conversion failed',
+          message: 'This PDF file has compression issues that prevent local parsing. Please try a different PDF file.',
+          details: {
+            localError: pdfError.message,
+            cloudError: cloudError.message
+          }
+        });
+      }
+    }
 
   } catch (error) {
     console.error('❌ PDF to DOCX error:', error);
@@ -266,16 +406,18 @@ router.post('/pdf-to-docx', upload.single('file'), async (req, res) => {
 });
 
 // PDF Splitter
-router.post('/split-pdf', upload.single('file'), async (req, res) => {
+router.post('/split-pdf', robustDocumentUpload, async (req, res) => {
   try {
     console.log('✂️ PDF split request received');
+    console.log('Files received:', req.files?.length || 0);
     
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    const file = req.files[0];
     const { startPage = 1, endPage, splitType = 'pages' } = req.body;
-    const inputPath = req.file.path;
+    const inputPath = file.path;
     const pdfBuffer = fs.readFileSync(inputPath);
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     
@@ -344,27 +486,43 @@ router.post('/split-pdf', upload.single('file'), async (req, res) => {
 });
 
 // Document Text Extractor
-router.post('/extract-text', upload.single('file'), async (req, res) => {
+router.post('/extract-text', robustDocumentUpload, async (req, res) => {
   try {
     console.log('📖 Text extraction request received');
+    console.log('Files received:', req.files?.length || 0);
     
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const inputPath = req.file.path;
+    const file = req.files[0];
     let extractedText = '';
     let wordCount = 0;
 
-    if (req.file.mimetype === 'application/pdf') {
-      // Extract from PDF
-      const pdfBuffer = fs.readFileSync(inputPath);
-      const pdfData = await pdfParse(pdfBuffer);
-      extractedText = pdfData.text;
-      wordCount = pdfData.text.split(/\s+/).filter(word => word.length > 0).length;
-    } else if (req.file.mimetype.includes('wordprocessingml')) {
+    if (file.mimetype === 'application/pdf') {
+      try {
+        // Try local PDF parsing first
+        const pdfBuffer = fs.readFileSync(file.path);
+        const pdfData = await pdfParse(pdfBuffer, {
+          normalizeWhitespace: false,
+          disableCombineTextItems: false
+        });
+        extractedText = pdfData.text;
+        wordCount = pdfData.text.split(/\s+/).filter(word => word.length > 0).length;
+      } catch (pdfError) {
+        console.error('❌ Local PDF parsing failed:', pdfError.message);
+        
+        // Return error for problematic PDFs
+        return res.status(400).json({
+          success: false,
+          error: 'PDF text extraction failed',
+          message: 'This PDF file has compression or structural issues that prevent text extraction. Please try a different PDF file.',
+          details: pdfError.message
+        });
+      }
+    } else if (file.mimetype.includes('wordprocessingml')) {
       // Extract from DOCX
-      const docxBuffer = fs.readFileSync(inputPath);
+      const docxBuffer = fs.readFileSync(file.path);
       const result = await mammoth.extractRawText({ buffer: docxBuffer });
       extractedText = result.value;
       wordCount = extractedText.split(/\s+/).filter(word => word.length > 0).length;
@@ -372,12 +530,12 @@ router.post('/extract-text', upload.single('file'), async (req, res) => {
 
     // Save extracted text
     const textFilename = `extracted-text-${Date.now()}.txt`;
-    const textPath = path.join(path.dirname(inputPath), textFilename);
+    const textPath = path.join(path.dirname(file.path), textFilename);
     fs.writeFileSync(textPath, extractedText);
 
     // Clean up input file
-    if (fs.existsSync(inputPath)) {
-      fs.unlinkSync(inputPath);
+    if (fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
     }
 
     res.json({
@@ -450,4 +608,3 @@ router.get('/download/:filename', (req, res) => {
 });
 
 module.exports = router;
-      
