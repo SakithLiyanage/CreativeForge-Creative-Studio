@@ -285,8 +285,38 @@ body {
 
 /* Content Positioning */
 .content-with-navbar {
-  padding-top: 80px;
+  padding-top: 4rem; /* 64px - matches navbar height */
   min-height: 100vh;
+}
+
+/* Enhanced navbar spacing */
+.content-with-navbar {
+  padding-top: 4rem; /* 64px - matches navbar height */
+}
+
+/* Improved navigation animations */
+.nav-item-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item-hover:hover {
+  transform: translateY(-1px);
+}
+
+/* Better mobile menu animations */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-menu-enter {
+  animation: slideInDown 0.2s ease-out;
 }
 
 /* Hover Effects */

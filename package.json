@@ -41,7 +41,12 @@
     "pdf-merger-js": "^4.3.0",
     "pdf-parse": "^1.1.1",
     "qrcode": "^1.5.4",
-    "sharp": "^0.32.5"
+    "sharp": "^0.32.5",
+    "short-uuid": "^4.2.2",
+    "validator": "^13.15.15",
+    "imap": "^0.8.19",
+    "mailparser": "^3.6.5",
+    "nodemailer": "^6.9.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

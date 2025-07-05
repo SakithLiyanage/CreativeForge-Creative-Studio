@@ -113,6 +113,38 @@ app.use('/api/convert', require('./routes/convert'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/documents', require('./routes/documents'));
 app.use('/api/qr', require('./routes/qr'));
+app.use('/api/url', require('./routes/urlShortener'));
+app.use('/api/temp-email', require('./routes/tempEmail'));
+
+// URL redirect for shortened URLs
+app.get('/s/:shortCode', async (req, res) => {
+  try {
+    const { shortCode } = req.params;
+    const ShortUrl = require('./models/ShortUrl');
+    
+    const urlData = await ShortUrl.findOne({ shortCode });
+    if (!urlData) {
+      return res.status(404).send('Short URL not found');
+    }
+
+    // Track click
+    urlData.clicks += 1;
+    urlData.clickHistory.push({
+      timestamp: new Date(),
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      referrer: req.get('Referer')
+    });
+    
+    await urlData.save();
+
+    // Redirect to original URL
+    res.redirect(urlData.originalUrl);
+  } catch (error) {
+    console.error('❌ Redirect error:', error);
+    res.status(500).send('Server error');
+  }
+});
 
 // Static file serving for uploaded images and documents
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
