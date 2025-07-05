@@ -73,13 +73,7 @@ const AdvancedNavbar = () => {
             </div>
           </div>
 
-          {/* Right side - CTA or User Menu */}
-          <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
-            <div className="flex items-center space-x-2 bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2 rounded-xl border border-indigo-100">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm font-semibold text-indigo-700">Online</span>
-            </div>
-          </div>
+         
 
           {/* Mobile menu button */}
           <div className="lg:hidden">
