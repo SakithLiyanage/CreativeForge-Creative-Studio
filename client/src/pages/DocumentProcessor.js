@@ -75,6 +75,12 @@ const DocumentProcessor = () => {
       return;
     }
 
+    // Validate file count for merge operation
+    if (activeTab === 'merge' && files.length < 2) {
+      setError('Please select at least 2 PDF files for merging');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setResult(null);
@@ -82,11 +88,25 @@ const DocumentProcessor = () => {
     try {
       const formData = new FormData();
       
-      if (tools.find(t => t.id === activeTab)?.multiple) {
-        files.forEach(file => formData.append('files', file));
+      // Add files - for merge operation, add multiple files with different field names
+      if (activeTab === 'merge') {
+        files.forEach((file, index) => {
+          formData.append(`file${index}`, file);
+          console.log(`📁 Added file ${index}:`, file.name);
+        });
       } else {
-        formData.append('file', files[0]);
+        // For single file operations, use a single field name
+        formData.append('file0', files[0]);
+        console.log(`📁 Added file:`, files[0].name);
       }
+
+      // Add additional parameters for split operation
+      if (activeTab === 'split') {
+        formData.append('splitType', 'pages'); // Default to split by pages
+      }
+
+      console.log('📋 Processing with tab:', activeTab);
+      console.log('📋 Files count:', files.length);
 
       let endpoint = '';
       switch (activeTab) {
@@ -101,7 +121,6 @@ const DocumentProcessor = () => {
           break;
         case 'split':
           endpoint = '/api/documents/split-pdf';
-          formData.append('splitType', 'pages'); // Default to split by pages
           break;
         case 'extract':
           endpoint = '/api/documents/extract-text';
@@ -110,6 +129,8 @@ const DocumentProcessor = () => {
           throw new Error('Invalid operation');
       }
 
+      console.log('🎯 Calling endpoint:', endpoint);
+
       const response = await axios.post(endpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -117,12 +138,13 @@ const DocumentProcessor = () => {
         timeout: 120000, // 2 minutes
       });
 
+      console.log('✅ Document processing response:', response.data);
       setResult(response.data);
       setFiles([]);
 
     } catch (error) {
       console.error('❌ Document processing error:', error);
-      setError(error.response?.data?.message || 'Processing failed. Please try again.');
+      setError(error.response?.data?.error || error.response?.data?.message || 'Processing failed. Please try again.');
     } finally {
       setLoading(false);
     }

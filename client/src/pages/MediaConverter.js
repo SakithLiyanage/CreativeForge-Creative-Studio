@@ -1,437 +1,530 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { 
-  HiCheckCircle,
-  HiDownload,
-  HiExternalLink,
-  HiLightningBolt,
-  HiSparkles,
-  HiPhotograph,
-  HiVideoCamera
-} from 'react-icons/hi';
+  IoSwapHorizontal,
+  IoImages,
+  IoVideocam,
+  IoMusicalNotes,
+  IoDownload,
+  IoCheckmarkCircle,
+  IoAlert,
+  IoCloudUpload,
+  IoSettings,
+  IoStar,
+  IoResize,
+  IoColorPalette
+} from 'react-icons/io5';
 
 const MediaConverter = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [conversionType, setConversionType] = useState('image');
+  const [activeType, setActiveType] = useState('image');
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const [outputFormat, setOutputFormat] = useState('jpeg');
-  const [quality, setQuality] = useState(90);
-  const [videoQuality, setVideoQuality] = useState('medium');
-  const [enhance, setEnhance] = useState(false);
-  const [resize, setResize] = useState({ enabled: false, width: '', height: '', fit: 'cover' });
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState('');
+  const [conversionOptions, setConversionOptions] = useState({
+    format: 'png',
+    quality: 90,
+    width: '',
+    height: '',
+    maintainAspectRatio: true
+  });
 
-  const convertFile = async () => {
-    if (!selectedFile) return;
+  const mediaTypes = [
+    { 
+      id: 'image', 
+      label: 'Images', 
+      icon: IoImages, 
+      description: 'Convert between image formats',
+      formats: ['JPG', 'PNG', 'WebP', 'GIF', 'BMP', 'TIFF'],
+      acceptedFiles: '.jpg,.jpeg,.png,.gif,.bmp,.tiff,.webp'
+    },
+    { 
+      id: 'video', 
+      label: 'Videos', 
+      icon: IoVideocam, 
+      description: 'Convert video formats and compress',
+      formats: ['MP4', 'AVI', 'MOV', 'WMV', 'FLV', 'MKV'],
+      acceptedFiles: '.mp4,.avi,.mov,.wmv,.flv,.mkv'
+    },
+    { 
+      id: 'audio', 
+      label: 'Audio', 
+      icon: IoMusicalNotes, 
+      description: 'Convert audio formats and quality',
+      formats: ['MP3', 'WAV', 'AAC', 'FLAC', 'OGG'],
+      acceptedFiles: '.mp3,.wav,.aac,.flac,.ogg'
+    }
+  ];
 
-    setLoading(true);
-    setProgress(0);
-    setResult(null);
-    
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    formData.append('outputFormat', outputFormat);
-    
-    if (conversionType === 'image') {
-      formData.append('quality', quality);
-      formData.append('enhance', enhance);
-      if (resize.enabled && resize.width && resize.height) {
-        formData.append('resize', JSON.stringify({
-          width: resize.width,
-          height: resize.height,
-          fit: resize.fit
-        }));
-      }
-    } else {
-      formData.append('quality', videoQuality);
+  const handleFileSelect = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setFiles(selectedFiles);
+    setResults([]);
+    setError('');
+  };
+
+  const convertMedia = async () => {
+    if (files.length === 0) {
+      setError('Please select files to convert');
+      return;
     }
 
-    try {
-      const endpoint = conversionType === 'image' ? '/api/convert/image' : '/api/convert/video';
-      
-      // Simulate progress for better UX
-      const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90));
-      }, 500);
+    setLoading(true);
+    setError('');
+    setResults([]);
 
-      console.log('🔄 Starting conversion:', { type: conversionType, format: outputFormat });
+    try {
+      console.log('🔄 Starting conversion...', {
+        activeType,
+        fileCount: files.length,
+        options: conversionOptions
+      });
+
+      const formData = new FormData();
       
+      // Add files with correct field name - try both approaches
+      files.forEach((file, index) => {
+        formData.append('files', file); // Array approach
+        console.log(`📁 Added file ${index + 1}:`, file.name, file.type, file.size);
+      });
+      
+      // Also add conversion options
+      Object.keys(conversionOptions).forEach(key => {
+        if (conversionOptions[key] !== '' && conversionOptions[key] !== null && conversionOptions[key] !== undefined) {
+          formData.append(key, conversionOptions[key]);
+          console.log(`⚙️ Added option ${key}:`, conversionOptions[key]);
+        }
+      });
+
+      // Debug FormData contents
+      console.log('📝 FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
+
+      const endpoint = `/api/convert/${activeType}`;
+      console.log('🎯 Calling endpoint:', endpoint);
+
       const response = await axios.post(endpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 300000, // 5 minutes timeout
+        timeout: 300000, // 5 minutes
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log('📊 Upload progress:', percentCompleted + '%');
+        }
       });
 
-      clearInterval(progressInterval);
-      setProgress(100);
-      
-      console.log('✅ Conversion successful:', response.data);
-      setResult(response.data);
-      
+      console.log('✅ Conversion response:', response.data);
+
+      if (response.data.success) {
+        setResults(response.data.results || []);
+        setFiles([]);
+      } else {
+        throw new Error(response.data.message || 'Conversion failed');
+      }
+
     } catch (error) {
       console.error('❌ Conversion error:', error);
-      alert(`Failed to convert file: ${error.response?.data?.message || error.message}`);
+      
+      let errorMessage = 'Conversion failed. ';
+      
+      if (error.response?.status === 400) {
+        errorMessage += error.response.data?.error || 'Invalid request.';
+        if (error.response.data?.debug) {
+          console.log('🐛 Debug info:', error.response.data.debug);
+        }
+      } else if (error.response?.status === 413) {
+        errorMessage += 'File too large. Please try smaller files.';
+      } else if (error.response?.status === 500) {
+        errorMessage += error.response.data?.message || 'Server error occurred.';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage += 'Request timed out. Please try smaller files or check your connection.';
+      } else {
+        errorMessage += error.response?.data?.message || error.message || 'Please try again.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
-      setTimeout(() => setProgress(0), 2000);
     }
   };
 
-  const downloadFile = () => {
-    if (result?.convertedName || result?.filename) {
-      const filename = result.convertedName || result.filename;
-      console.log('📥 Downloading file:', filename);
-      console.log('📊 Full result object:', result);
+  const downloadFile = async (filename, downloadUrl) => {
+    try {
+      console.log('📥 Starting download for:', filename);
       
-      // Use the API endpoint
-      const downloadUrl = `/api/convert/download/${filename}`;
+      // If it's a CloudConvert URL, download directly
+      if (downloadUrl && downloadUrl.startsWith('http')) {
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        console.log('✅ CloudConvert download initiated:', filename);
+        return;
+      }
       
-      // Create temporary link element
+      // Otherwise, download from local server
+      const response = await fetch(`/api/convert/download/${filename}`);
+      
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = downloadUrl;
+      link.href = url;
       link.download = filename;
-      
-      // Trigger download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
       
-      console.log('✅ Download initiated via:', downloadUrl);
-    } else {
-      console.error('❌ No file to download - result:', result);
-      alert('No file available for download');
+      console.log('✅ Local download completed:', filename);
+      
+    } catch (error) {
+      console.error('❌ Download failed:', error);
+      setError(`Download failed: ${error.message}`);
     }
   };
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    setSelectedFile(file);
-    setResult(null);
-    
-    if (file) {
-      console.log('📁 File selected:', {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      });
-    }
-  };
+  const activeMediaType = mediaTypes.find(t => t.id === activeType);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 content-with-navbar py-8">
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="text-center mb-12 animate-fadeInUp">
-          <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            🔄 Media Converter Pro
-          </h1>
-          <p className="text-gray-600 text-xl max-w-3xl mx-auto">
-            Convert, enhance, and optimize your media files with professional quality
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 content-with-navbar bg-pattern-dots">
+      
+      {/* Enhanced Floating Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-cyan-200/20 to-blue-200/20 rounded-full animate-float-elegant blur-3xl"></div>
+        <div className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-r from-indigo-200/15 to-purple-200/15 rounded-full animate-float-elegant delay-300 blur-2xl"></div>
+        <div className="absolute bottom-20 left-40 w-72 h-72 bg-gradient-to-r from-teal-200/20 to-cyan-200/20 rounded-full animate-float-elegant delay-600 blur-3xl"></div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6 py-16">
         
-        <div className="glass-card p-8 rounded-3xl border border-white/20 hover-lift">
-          {/* Conversion Type Selection */}
-          <div className="mb-8">
-            <label className="block text-lg font-bold text-gray-800 mb-4">
-              Choose Conversion Type:
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() => {
-                  setConversionType('image');
-                  setOutputFormat('jpeg');
-                }}
-                className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
-                  conversionType === 'image'
-                    ? 'border-purple-500 bg-purple-50 text-purple-700'
-                    : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
-                }`}
-              >
-                <HiPhotograph className="text-4xl mb-2 mx-auto" />
-                <div className="font-bold">Image Conversion</div>
-                <div className="text-sm opacity-75">All formats + Enhancement</div>
-              </button>
-              
-              <button
-                onClick={() => {
-                  setConversionType('video');
-                  setOutputFormat('mp4');
-                }}
-                className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
-                  conversionType === 'video'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
-                }`}
-              >
-                <HiVideoCamera className="text-4xl mb-2 mx-auto" />
-                <div className="font-bold">Video Conversion</div>
-                <div className="text-sm opacity-75">All formats + Quality options</div>
-              </button>
+        {/* Header */}
+        <div className="text-center mb-16 animate-slide-up-fade">
+          <div className="inline-flex items-center space-x-3 bg-white/80 backdrop-blur-sm px-8 py-4 rounded-full border border-cyan-100 mb-12 shadow-lg">
+            <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
+              <IoSwapHorizontal className="text-white animate-pulse" />
+            </div>
+            <span className="text-sm font-bold gradient-text">Professional Media Converter</span>
+            <div className="px-3 py-1 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-full">
+              <span className="text-xs font-bold text-blue-700">⚡ Fast</span>
             </div>
           </div>
+          
+          <h1 className="text-6xl md:text-8xl font-black mb-6 text-display">
+            <span className="gradient-text-flow">Media</span>
+            <br />
+            <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">Converter</span>
+          </h1>
+          
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed text-body">
+            Convert images, videos, and audio files with professional quality and lightning-fast speed
+          </p>
+        </div>
 
-          {/* Format and Settings */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Output Format:
-              </label>
-              <select
-                value={outputFormat}
-                onChange={(e) => setOutputFormat(e.target.value)}
-                className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300"
-              >
-                {conversionType === 'image' ? (
-                  <>
-                    <option value="jpeg">JPEG</option>
-                    <option value="png">PNG</option>
-                    <option value="webp">WebP</option>
-                    <option value="avif">AVIF</option>
-                    <option value="tiff">TIFF</option>
-                    <option value="heif">HEIF</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="mp4">MP4</option>
-                    <option value="webm">WebM</option>
-                    <option value="avi">AVI</option>
-                    <option value="mov">MOV</option>
-                    <option value="wmv">WMV</option>
-                    <option value="flv">FLV</option>
-                    <option value="3gp">3GP</option>
-                  </>
+        {/* Media Type Selection */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {mediaTypes.map((type) => (
+            <button
+              key={type.id}
+              onClick={() => {
+                setActiveType(type.id);
+                setFiles([]);
+                setResults([]);
+                setError('');
+                setConversionOptions({
+                  format: type.formats[0].toLowerCase(),
+                  quality: 90,
+                  width: '',
+                  height: '',
+                  maintainAspectRatio: true
+                });
+              }}
+              className={`group relative p-8 rounded-3xl transition-all duration-500 text-center ${
+                activeType === type.id
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-2xl scale-105'
+                  : 'card-modern hover:shadow-xl hover:scale-105'
+              }`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="relative">
+                <type.icon className={`text-5xl mx-auto mb-4 ${
+                  activeType === type.id ? 'text-white' : 'text-cyan-500'
+                } group-hover:scale-110 transition-transform duration-300`} />
+                
+                <h3 className={`text-2xl font-black mb-2 ${
+                  activeType === type.id ? 'text-white' : 'gradient-text'
+                }`}>
+                  {type.label}
+                </h3>
+                
+                <p className={`text-sm mb-4 ${
+                  activeType === type.id ? 'text-cyan-100' : 'text-gray-600'
+                }`}>
+                  {type.description}
+                </p>
+                
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {type.formats.slice(0, 4).map((format) => (
+                    <span
+                      key={format}
+                      className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        activeType === type.id 
+                          ? 'bg-white/20 text-white' 
+                          : 'bg-cyan-100 text-cyan-700'
+                      }`}
+                    >
+                      {format}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-12">
+          
+          {/* Conversion Panel */}
+          <div className="space-y-8">
+            <div className="card-modern animate-slide-up-fade delay-150 bg-white/80 backdrop-blur-sm border-0 shadow-2xl">
+              <div className="flex items-center space-x-3 mb-8">
+                <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-3xl flex items-center justify-center shadow-2xl">
+                  <activeMediaType.icon className="text-white text-2xl" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-black gradient-text">Convert {activeMediaType.label}</h2>
+                  <p className="text-gray-600">{activeMediaType.description}</p>
+                </div>
+              </div>
+
+              {/* File Upload */}
+              <div className="mb-8">
+                <label className="block text-gray-700 font-bold mb-4 text-lg">
+                  Select Files:
+                </label>
+                <div className="relative border-3 border-dashed border-cyan-300 rounded-3xl p-12 text-center hover:border-cyan-400 transition-all duration-300 bg-gradient-to-br from-cyan-50/50 to-blue-50/50">
+                  <input
+                    type="file"
+                    onChange={handleFileSelect}
+                    accept={activeMediaType.acceptedFiles}
+                    multiple
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    id="file-upload"
+                  />
+                  <IoCloudUpload className="text-8xl text-cyan-400 mx-auto mb-6" />
+                  <div className="text-2xl font-bold text-gray-700 mb-3">
+                    Drop files here or click to browse
+                  </div>
+                  <div className="text-gray-500 text-lg">
+                    Supported: {activeMediaType.formats.join(', ')}
+                  </div>
+                </div>
+                
+                {files.length > 0 && (
+                  <div className="mt-6 space-y-3">
+                    {files.map((file, index) => (
+                      <div key={index} className="flex items-center space-x-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-2xl border border-cyan-200">
+                        <activeMediaType.icon className="text-cyan-500 text-2xl" />
+                        <div className="flex-1">
+                          <span className="font-bold text-cyan-900">{file.name}</span>
+                          <div className="text-sm text-cyan-600">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
-              </select>
-            </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                {conversionType === 'image' ? `Quality: ${quality}%` : 'Video Quality:'}
-              </label>
-              {conversionType === 'image' ? (
-                <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  value={quality}
-                  onChange={(e) => setQuality(e.target.value)}
-                  className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-              ) : (
-                <select
-                  value={videoQuality}
-                  onChange={(e) => setVideoQuality(e.target.value)}
-                  className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300"
-                >
-                  <option value="low">Low (Fast)</option>
-                  <option value="medium">Medium (Balanced)</option>
-                  <option value="high">High (Slow)</option>
-                  <option value="ultra">Ultra (Very Slow)</option>
-                </select>
+              {/* Conversion Options */}
+              <div className="bg-gradient-to-r from-gray-50 to-cyan-50 p-6 rounded-3xl mb-8">
+                <h3 className="font-bold text-gray-800 mb-6 flex items-center text-xl">
+                  <IoSettings className="mr-3 text-cyan-500" />
+                  Conversion Settings
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Output Format</label>
+                    <select
+                      value={conversionOptions.format}
+                      onChange={(e) => setConversionOptions({...conversionOptions, format: e.target.value})}
+                      className="input-modern"
+                    >
+                      {activeMediaType.formats.map(format => (
+                        <option key={format} value={format.toLowerCase()}>
+                          {format}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Quality</label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="range"
+                        min="10"
+                        max="100"
+                        value={conversionOptions.quality}
+                        onChange={(e) => setConversionOptions({...conversionOptions, quality: parseInt(e.target.value)})}
+                        className="flex-1"
+                      />
+                      <span className="font-bold text-cyan-600 w-12">{conversionOptions.quality}%</span>
+                    </div>
+                  </div>
+                  
+                  {activeType === 'image' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Width (px)</label>
+                        <input
+                          type="number"
+                          value={conversionOptions.width}
+                          onChange={(e) => setConversionOptions({...conversionOptions, width: e.target.value})}
+                          placeholder="Auto"
+                          className="input-modern"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Height (px)</label>
+                        <input
+                          type="number"
+                          value={conversionOptions.height}
+                          onChange={(e) => setConversionOptions({...conversionOptions, height: e.target.value})}
+                          placeholder="Auto"
+                          className="input-modern"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={convertMedia}
+                disabled={loading || files.length === 0}
+                className="btn-primary w-full text-xl py-5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Converting Media...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center space-x-3">
+                    <IoSwapHorizontal className="text-2xl" />
+                    <span>Convert {activeMediaType.label}</span>
+                  </div>
+                )}
+              </button>
+
+              {/* Error Display */}
+              {error && (
+                <div className="mt-6 p-6 bg-red-50 border-l-4 border-red-400 rounded-r-3xl animate-slide-up-fade">
+                  <div className="flex items-center text-red-700">
+                    <IoAlert className="mr-4 text-2xl" />
+                    <div>
+                      <strong>Conversion Failed:</strong> {error}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Image Enhancement Options */}
-          {conversionType === 'image' && (
-            <div className="mb-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200">
-              <h3 className="text-lg font-bold text-purple-800 mb-4 flex items-center">
-                <HiSparkles className="mr-2" />
-                Enhancement Options
-              </h3>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={enhance}
-                      onChange={(e) => setEnhance(e.target.checked)}
-                      className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-                    />
-                    <span className="font-medium text-purple-700">
-                      Auto Enhancement (Sharpen, Normalize, Color boost)
-                    </span>
-                  </label>
+          {/* Results Panel */}
+          <div className="space-y-8">
+            {results.length > 0 ? (
+              <div className="card-modern animate-slide-up-fade delay-300 bg-white/80 backdrop-blur-sm border-0 shadow-2xl">
+                <div className="flex items-center space-x-3 mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-3xl flex items-center justify-center shadow-2xl">
+                    <IoCheckmarkCircle className="text-white text-2xl" />
+                  </div>
+                  <h2 className="text-3xl font-black gradient-text">Conversion Complete!</h2>
                 </div>
-                
-                <div>
-                  <label className="flex items-center space-x-3 cursor-pointer mb-3">
-                    <input
-                      type="checkbox"
-                      checked={resize.enabled}
-                      onChange={(e) => setResize({...resize, enabled: e.target.checked})}
-                      className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-                    />
-                    <span className="font-medium text-purple-700">Resize Image</span>
-                  </label>
-                  
-                  {resize.enabled && (
-                    <div className="grid grid-cols-3 gap-2">
-                      <input
-                        type="number"
-                        placeholder="Width"
-                        value={resize.width}
-                        onChange={(e) => setResize({...resize, width: e.target.value})}
-                        className="p-2 border border-purple-200 rounded-lg text-sm"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Height"
-                        value={resize.height}
-                        onChange={(e) => setResize({...resize, height: e.target.value})}
-                        className="p-2 border border-purple-200 rounded-lg text-sm"
-                      />
-                      <select
-                        value={resize.fit}
-                        onChange={(e) => setResize({...resize, fit: e.target.value})}
-                        className="p-2 border border-purple-200 rounded-lg text-sm"
-                      >
-                        <option value="cover">Cover</option>
-                        <option value="contain">Contain</option>
-                        <option value="fill">Fill</option>
-                      </select>
+
+                <div className="space-y-4">
+                  {results.map((result, index) => (
+                    <div key={index} className="bg-gradient-to-r from-green-50 to-teal-50 p-6 rounded-3xl border border-green-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="font-bold text-green-800 text-lg mb-2">{result.filename}</div>
+                          <div className="text-sm text-green-600 space-y-1">
+                            <div>Format: {result.format?.toUpperCase()}</div>
+                            <div>Size: {result.fileSize ? `${(result.fileSize / 1024 / 1024).toFixed(2)} MB` : 'N/A'}</div>
+                            {result.dimensions && (
+                              <div>Dimensions: {result.dimensions}</div>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => downloadFile(result.filename, result.downloadUrl)}
+                          className="btn-primary"
+                        >
+                          <IoDownload className="mr-2" />
+                          Download
+                        </button>
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
-              </div>
-            </div>
-          )}
 
-          {/* File Upload */}
-          <div className="mb-8">
-            <label className="block text-lg font-bold text-gray-800 mb-4">
-              Select File:
-            </label>
-            <div className="border-3 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-purple-400 transition-all duration-300">
-              <input
-                type="file"
-                onChange={handleFileSelect}
-                accept={conversionType === 'image' ? 
-                  '.png,.jpg,.jpeg,.webp,.gif,.bmp,.tiff,.svg,.heic,.heif,.avif,.jp2,.jxr' : 
-                  '.mkv,.avi,.mov,.mp4,.wmv,.flv,.webm,.m4v,.3gp,.ogv'
-                }
-                className="hidden"
-                id="file-upload"
-              />
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <div className="text-6xl mb-4">📁</div>
-                <div className="text-xl font-bold text-gray-700 mb-2">
-                  Click to select {conversionType} file
+                <div className="text-center mt-6 text-green-600 font-bold text-lg">
+                  ✨ {results.length} file(s) converted successfully!
                 </div>
-                <div className="text-gray-500">
-                  Supports all major {conversionType} formats
-                </div>
-              </label>
-            </div>
-            
-            {selectedFile && (
-              <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-200">
-                <p className="font-medium text-green-800">
-                  📄 Selected: {selectedFile.name}
-                </p>
-                <p className="text-sm text-green-600">
-                  Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Convert Button */}
-          <button
-            onClick={convertFile}
-            disabled={!selectedFile || loading}
-            className="w-full bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 text-white py-4 px-8 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {loading ? (
-              <div className="flex items-center justify-center space-x-3">
-                <div className="w-6 h-6 loading-spinner">
-                  <div className="w-full h-full border-3 border-white border-t-transparent rounded-full"></div>
-                </div>
-                <span>Converting... {progress}%</span>
               </div>
             ) : (
-              <span className="flex items-center justify-center space-x-2">
-                <HiLightningBolt />
-                <span>Convert & Enhance {conversionType === 'image' ? 'Image' : 'Video'}</span>
-              </span>
+              <div className="card-modern text-center animate-slide-up-fade delay-300 bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+                <div className="w-32 h-32 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-8">
+                  <IoSwapHorizontal className="text-gray-400 text-5xl" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-600 mb-4">Ready to Convert</h3>
+                <p className="text-gray-500 text-body text-lg">Upload your media files and start converting</p>
+              </div>
             )}
-          </button>
 
-          {/* Progress Bar */}
-          {loading && (
-            <div className="mt-4 bg-gray-200 rounded-full h-3 overflow-hidden">
-              <div 
-                className="bg-gradient-to-r from-green-500 to-blue-500 h-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-          )}
-
-          {/* Result */}
-          {result && (
-            <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl border border-green-200 animate-fadeInUp">
-              <h3 className="text-xl font-bold text-green-800 mb-4 flex items-center">
-                <HiCheckCircle className="w-6 h-6 mr-3" />
-                Conversion Successful! 🎉
-                {result.enhanced && <HiSparkles className="w-5 h-5 ml-2 text-purple-600" />}
+            {/* Features Showcase */}
+            <div className="card-modern bg-white/80 backdrop-blur-sm border-0 shadow-xl animate-slide-up-fade delay-500">
+              <h3 className="font-bold gradient-text mb-6 text-2xl flex items-center">
+                <IoStar className="text-yellow-500 mr-3" />
+                Conversion Features
               </h3>
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Original:</p>
-                  <p className="font-bold">{result.originalName}</p>
-                  <p className="text-sm text-gray-500">{(result.originalSize / 1024 / 1024).toFixed(2)} MB</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Converted:</p>
-                  <p className="font-bold">{result.convertedName}</p>
-                  <p className="text-sm text-gray-500">{(result.convertedSize / 1024 / 1024).toFixed(2)} MB</p>
-                  {result.enhanced && <p className="text-xs text-purple-600 font-medium">✨ Enhanced</p>}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={downloadFile}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
-                >
-                  <HiDownload />
-                  <span>Download File</span>
-                </button>
-                <button
-                  onClick={() => window.open(`http://localhost:5000${result.downloadUrl}`, '_blank')}
-                  className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
-                >
-                  <HiExternalLink />
-                  <span>Open File</span>
-                </button>
-              </div>
+              <ul className="space-y-4 text-gray-700">
+                <li className="flex items-center">
+                  <IoResize className="text-cyan-500 mr-3" />
+                  <span>Custom dimensions and quality control</span>
+                </li>
+                <li className="flex items-center">
+                  <IoColorPalette className="text-purple-500 mr-3" />
+                  <span>Advanced format options</span>
+                </li>
+                <li className="flex items-center">
+                  <IoSettings className="text-blue-500 mr-3" />
+                  <span>Batch processing support</span>
+                </li>
+                <li className="flex items-center">
+                  <IoCheckmarkCircle className="text-green-500 mr-3" />
+                  <span>Professional quality output</span>
+                </li>
+              </ul>
             </div>
-          )}
-        </div>
-
-        {/* Feature Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mt-12">
-          <div className="glass-card p-6 rounded-2xl border border-white/20 hover-lift">
-            <div className="text-3xl mb-3">⚡</div>
-            <h3 className="font-bold text-gray-800 mb-2">All Formats</h3>
-            <p className="text-gray-600 text-sm">Support for all major image and video formats</p>
-          </div>
-          <div className="glass-card p-6 rounded-2xl border border-white/20 hover-lift">
-            <div className="text-3xl mb-3">✨</div>
-            <h3 className="font-bold text-gray-800 mb-2">AI Enhancement</h3>
-            <p className="text-gray-600 text-sm">Automatic image enhancement and optimization</p>
-          </div>
-          <div className="glass-card p-6 rounded-2xl border border-white/20 hover-lift">
-            <div className="text-3xl mb-3">🔒</div>
-            <h3 className="font-bold text-gray-800 mb-2">Secure & Private</h3>
-            <p className="text-gray-600 text-sm">Files processed locally and auto-deleted</p>
-          </div>
-          <div className="glass-card p-6 rounded-2xl border border-white/20 hover-lift">
-            <div className="text-3xl mb-3">💎</div>
-            <h3 className="font-bold text-gray-800 mb-2">Pro Quality</h3>
-            <p className="text-gray-600 text-sm">Professional-grade conversion algorithms</p>
           </div>
         </div>
       </div>

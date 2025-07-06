@@ -79,12 +79,19 @@ body {
   50% { transform: translateY(-10px); }
 }
 
-/* Animation Classes */
+/* Enhanced animations */
+@keyframes tilt {
+  0%, 50%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(0.5deg); }
+  75% { transform: rotate(-0.5deg); }
+}
+
 .animate-float-elegant { animation: float-elegant 6s ease-in-out infinite; }
 .animate-slide-up-fade { animation: slide-up-fade 0.6s ease-out; }
 .animate-gradient-flow { animation: gradient-flow 8s ease infinite; }
 .animate-shimmer { animation: shimmer 2s ease-in-out infinite; }
 .animate-bounce-gentle { animation: bounce-gentle 2s ease-in-out infinite; }
+.animate-tilt { animation: tilt 10s infinite linear; }
 
 /* Delay Classes */
 .delay-75 { animation-delay: 75ms; }
@@ -205,12 +212,12 @@ body {
 }
 
 .gradient-text-flow {
-  background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #f5576c);
-  background-size: 300% 300%;
+  background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe);
+  background-size: 400% 400%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: gradient-flow 6s ease infinite;
+  animation: gradient-flow 8s ease infinite;
 }
 
 /* Modern Shadows */
@@ -224,6 +231,25 @@ body {
   box-shadow: 
     0 20px 25px -5px rgba(99, 102, 241, 0.1),
     0 10px 10px -5px rgba(99, 102, 241, 0.04);
+}
+
+.shadow-3xl {
+  box-shadow: 
+    0 35px 60px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Glow effects */
+.glow-purple {
+  box-shadow: 
+    0 0 20px rgba(139, 92, 246, 0.3),
+    0 0 40px rgba(139, 92, 246, 0.1);
+}
+
+.glow-blue {
+  box-shadow: 
+    0 0 20px rgba(59, 130, 246, 0.3),
+    0 0 40px rgba(59, 130, 246, 0.1);
 }
 
 /* Background Patterns */
@@ -259,8 +285,38 @@ body {
 
 /* Content Positioning */
 .content-with-navbar {
-  padding-top: 80px;
+  padding-top: 4rem; /* 64px - matches navbar height */
   min-height: 100vh;
+}
+
+/* Enhanced navbar spacing */
+.content-with-navbar {
+  padding-top: 4rem; /* 64px - matches navbar height */
+}
+
+/* Improved navigation animations */
+.nav-item-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item-hover:hover {
+  transform: translateY(-1px);
+}
+
+/* Better mobile menu animations */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-menu-enter {
+  animation: slideInDown 0.2s ease-out;
 }
 
 /* Hover Effects */
@@ -274,11 +330,11 @@ body {
 }
 
 .hover-scale {
-  transition: transform 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-scale:hover {
-  transform: scale(1.05);
+  transform: scale(1.05) translateY(-2px);
 }
 
 /* Typography */
