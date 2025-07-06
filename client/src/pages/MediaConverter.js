@@ -74,40 +74,127 @@ const MediaConverter = () => {
     setResults([]);
 
     try {
-      const formData = new FormData();
-      files.forEach(file => formData.append('files', file));
-      
-      // Add conversion options
-      Object.keys(conversionOptions).forEach(key => {
-        formData.append(key, conversionOptions[key]);
+      console.log('🔄 Starting conversion...', {
+        activeType,
+        fileCount: files.length,
+        options: conversionOptions
       });
 
+      const formData = new FormData();
+      
+      // Add files with correct field name - try both approaches
+      files.forEach((file, index) => {
+        formData.append('files', file); // Array approach
+        console.log(`📁 Added file ${index + 1}:`, file.name, file.type, file.size);
+      });
+      
+      // Also add conversion options
+      Object.keys(conversionOptions).forEach(key => {
+        if (conversionOptions[key] !== '' && conversionOptions[key] !== null && conversionOptions[key] !== undefined) {
+          formData.append(key, conversionOptions[key]);
+          console.log(`⚙️ Added option ${key}:`, conversionOptions[key]);
+        }
+      });
+
+      // Debug FormData contents
+      console.log('📝 FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
+
       const endpoint = `/api/convert/${activeType}`;
+      console.log('🎯 Calling endpoint:', endpoint);
+
       const response = await axios.post(endpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
         timeout: 300000, // 5 minutes
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log('📊 Upload progress:', percentCompleted + '%');
+        }
       });
 
-      setResults(response.data.results || [response.data]);
-      setFiles([]);
+      console.log('✅ Conversion response:', response.data);
+
+      if (response.data.success) {
+        setResults(response.data.results || []);
+        setFiles([]);
+      } else {
+        throw new Error(response.data.message || 'Conversion failed');
+      }
 
     } catch (error) {
       console.error('❌ Conversion error:', error);
-      setError(error.response?.data?.message || 'Conversion failed. Please try again.');
+      
+      let errorMessage = 'Conversion failed. ';
+      
+      if (error.response?.status === 400) {
+        errorMessage += error.response.data?.error || 'Invalid request.';
+        if (error.response.data?.debug) {
+          console.log('🐛 Debug info:', error.response.data.debug);
+        }
+      } else if (error.response?.status === 413) {
+        errorMessage += 'File too large. Please try smaller files.';
+      } else if (error.response?.status === 500) {
+        errorMessage += error.response.data?.message || 'Server error occurred.';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage += 'Request timed out. Please try smaller files or check your connection.';
+      } else {
+        errorMessage += error.response?.data?.message || error.message || 'Please try again.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const downloadFile = (filename) => {
-    const link = document.createElement('a');
-    link.href = `/api/convert/download/${filename}`;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadFile = async (filename, downloadUrl) => {
+    try {
+      console.log('📥 Starting download for:', filename);
+      
+      // If it's a CloudConvert URL, download directly
+      if (downloadUrl && downloadUrl.startsWith('http')) {
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        console.log('✅ CloudConvert download initiated:', filename);
+        return;
+      }
+      
+      // Otherwise, download from local server
+      const response = await fetch(`/api/convert/download/${filename}`);
+      
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('✅ Local download completed:', filename);
+      
+    } catch (error) {
+      console.error('❌ Download failed:', error);
+      setError(`Download failed: ${error.message}`);
+    }
   };
 
   const activeMediaType = mediaTypes.find(t => t.id === activeType);
@@ -388,7 +475,7 @@ const MediaConverter = () => {
                           </div>
                         </div>
                         <button
-                          onClick={() => downloadFile(result.filename)}
+                          onClick={() => downloadFile(result.filename, result.downloadUrl)}
                           className="btn-primary"
                         >
                           <IoDownload className="mr-2" />

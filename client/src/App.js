@@ -6,6 +6,8 @@ import ImageGenerator from './pages/ImageGenerator';
 import MediaConverter from './pages/MediaConverter';
 import DocumentProcessor from './pages/DocumentProcessor';
 import QRGenerator from './pages/QRGenerator';
+import UrlShortener from './pages/UrlShortener';
+import TempEmail from './pages/TempEmail';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
             <Route path="/convert" element={<MediaConverter />} />
             <Route path="/documents" element={<DocumentProcessor />} />
             <Route path="/qr" element={<QRGenerator />} />
+            <Route path="/url-shortener" element={<UrlShortener />} />
+            <Route path="/temp-email" element={<TempEmail />} />
           </Routes>
         </main>
       </div>
