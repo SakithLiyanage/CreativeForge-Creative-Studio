@@ -18,7 +18,13 @@ const tempEmailSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  apiProvider: {
+    type: String,
+    default: '1secmail',
+    enum: ['1secmail', 'simulation']
+  },
   messages: [{
+    id: String,
     from: String,
     subject: String,
     body: String,

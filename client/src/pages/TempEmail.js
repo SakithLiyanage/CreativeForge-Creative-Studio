@@ -22,9 +22,23 @@ const TempEmail = () => {
   const [domains, setDomains] = useState([]);
   const [isRealEmail, setIsRealEmail] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [apiProvider, setApiProvider] = useState('');
+  const [apiStatus, setApiStatus] = useState('idle');
+
+  // Only allow 1secmail-supported domains
+  const oneSecMailDomains = [
+    '1secmail.com',
+    '1secmail.org',
+    '1secmail.net',
+    'kzccv.com',
+    'qiott.com',
+    'uuf.me',
+    '1secmail.xyz'
+  ];
 
   useEffect(() => {
-    fetchDomains();
+    setDomains(oneSecMailDomains);
+    setSelectedDomain(oneSecMailDomains[0]);
   }, []);
 
   useEffect(() => {
@@ -68,10 +82,12 @@ const TempEmail = () => {
   const generateEmail = async () => {
     setLoading(true);
     setError('');
+    setApiStatus('generating');
 
     try {
-      const response = await axios.post('/api/temp-email/generate-real', {
-        service: 'guerrillamail'
+      const response = await axios.post('/api/temp-email/generate', {
+        customUsername,
+        domain: selectedDomain
       }, {
         timeout: 15000
       });
@@ -83,10 +99,13 @@ const TempEmail = () => {
       setCustomUsername('');
       setIsRealEmail(true);
       setAutoRefresh(true);
+      setApiProvider(emailData.apiProvider || '1secmail');
+      setApiStatus('connected');
 
     } catch (error) {
       console.error('❌ Email generation error:', error);
       setError(error.response?.data?.error || 'Failed to generate email');
+      setApiStatus('error');
     } finally {
       setLoading(false);
     }
@@ -96,15 +115,20 @@ const TempEmail = () => {
     if (!email) return;
 
     try {
+      setApiStatus('fetching');
       let endpoint = `/api/temp-email/${email}/messages`;
-      if (forceRefresh && isRealEmail) {
-        endpoint = `/api/temp-email/${email}/auto-refresh`;
-      }
-
+      // Always use /messages endpoint, remove auto-refresh logic
       const response = await axios.get(endpoint);
       setMessages(response.data.data.messages || []);
+      setApiStatus('connected');
+      
+      // Show API error if any
+      if (response.data.data.apiError) {
+        console.warn('⚠️ API Warning:', response.data.data.apiError);
+      }
     } catch (error) {
       console.error('❌ Failed to refresh messages:', error);
+      setApiStatus('error');
     }
   };
 
@@ -235,10 +259,13 @@ const TempEmail = () => {
                   </div>
 
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <h4 className="font-bold text-blue-800 mb-2">📧 Real Email Service:</h4>
+                    <h4 className="font-bold text-blue-800 mb-2">📧 1secmail API Integration:</h4>
                     <p className="text-sm text-blue-700">
-                      Generates temporary emails that can receive messages from external websites
+                      Uses 1secmail API to generate real temporary emails that can receive actual messages from external websites
                     </p>
+                    <div className="mt-2 text-xs text-blue-600">
+                      <strong>Free API:</strong> No registration required, instant email generation
+                    </div>
                   </div>
 
                   {/* Error Display */}
@@ -260,8 +287,20 @@ const TempEmail = () => {
                       <div>
                         <h3 className="font-bold text-green-800">Your Temporary Email:</h3>
                         <div className="flex items-center space-x-2 mt-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="text-xs text-green-600 font-semibold">Active - Can Receive External Messages</span>
+                          <div className={`w-2 h-2 rounded-full animate-pulse ${
+                            apiStatus === 'connected' ? 'bg-green-500' : 
+                            apiStatus === 'fetching' ? 'bg-yellow-500' : 
+                            apiStatus === 'error' ? 'bg-red-500' : 'bg-gray-400'
+                          }`}></div>
+                          <span className="text-xs font-semibold ${
+                            apiStatus === 'connected' ? 'text-green-600' : 
+                            apiStatus === 'fetching' ? 'text-yellow-600' : 
+                            apiStatus === 'error' ? 'text-red-600' : 'text-gray-600'
+                          }">
+                            {apiStatus === 'connected' ? 'Connected to 1secmail API' : 
+                             apiStatus === 'fetching' ? 'Fetching messages...' : 
+                             apiStatus === 'error' ? 'API Error' : 'Connecting...'}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2 text-orange-600">
@@ -315,6 +354,26 @@ const TempEmail = () => {
                         <IoPlay className="mr-2" />
                         Test Email
                       </button>
+                    </div>
+                    
+                    {/* API Status */}
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">API Provider:</span>
+                        <span className="font-semibold text-blue-600">{apiProvider || '1secmail'}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm mt-1">
+                        <span className="text-gray-600">Status:</span>
+                        <span className={`font-semibold ${
+                          apiStatus === 'connected' ? 'text-green-600' : 
+                          apiStatus === 'fetching' ? 'text-yellow-600' : 
+                          apiStatus === 'error' ? 'text-red-600' : 'text-gray-600'
+                        }`}>
+                          {apiStatus === 'connected' ? 'Connected' : 
+                           apiStatus === 'fetching' ? 'Fetching' : 
+                           apiStatus === 'error' ? 'Error' : 'Idle'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

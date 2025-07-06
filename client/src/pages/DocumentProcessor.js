@@ -62,8 +62,11 @@ const DocumentProcessor = () => {
     }
   ];
 
+  const fileInputId = `file-upload-${activeTab}`;
+
   const handleFileSelect = (e) => {
     const selectedFiles = Array.from(e.target.files);
+    console.log('Selected files:', selectedFiles);
     setFiles(selectedFiles);
     setResult(null);
     setError('');
@@ -88,17 +91,11 @@ const DocumentProcessor = () => {
     try {
       const formData = new FormData();
       
-      // Add files - for merge operation, add multiple files with different field names
-      if (activeTab === 'merge') {
-        files.forEach((file, index) => {
-          formData.append(`file${index}`, file);
-          console.log(`📁 Added file ${index}:`, file.name);
-        });
-      } else {
-        // For single file operations, use a single field name
-        formData.append('file0', files[0]);
-        console.log(`📁 Added file:`, files[0].name);
-      }
+      // Always use 'files' as the field name for all uploads
+      files.forEach((file) => {
+        formData.append('files', file);
+        console.log('📁 Added file:', file.name);
+      });
 
       // Add additional parameters for split operation
       if (activeTab === 'split') {
@@ -266,9 +263,9 @@ const DocumentProcessor = () => {
                     accept={activeTool.acceptedFiles}
                     multiple={activeTool.multiple}
                     className="hidden"
-                    id="file-upload"
+                    id={fileInputId}
                   />
-                  <label htmlFor="file-upload" className="cursor-pointer">
+                  <label htmlFor={fileInputId} className="cursor-pointer">
                     <IoCloudUpload className="text-6xl text-gray-400 mx-auto mb-4" />
                     <div className="text-xl font-bold text-gray-700 mb-2">
                       Click to select {activeTool.multiple ? 'files' : 'file'}

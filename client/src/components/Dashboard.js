@@ -29,7 +29,11 @@ const Dashboard = () => {
     totalConversions: 0,
     conversionsThisMonth: 0,
     storageUsed: 0,
-    totalProjects: 0
+    totalProjects: 0,
+    totalDocuments: 0,
+    totalQRCodes: 0,
+    totalShortUrls: 0,
+    totalTempEmails: 0
   });
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +66,11 @@ const Dashboard = () => {
         totalConversions: 856,
         conversionsThisMonth: 98,
         storageUsed: 245,
-        totalProjects: 2103
+        totalProjects: 2103,
+        totalDocuments: 1200,
+        totalQRCodes: 500,
+        totalShortUrls: 1000,
+        totalTempEmails: 200
       };
       setStats(demoStats);
       Object.keys(demoStats).forEach(key => {
@@ -111,7 +119,7 @@ const Dashboard = () => {
       icon: IoDocumentText,
       color: 'from-green-500 to-blue-500',
       path: '/documents',
-      count: 0
+      count: animatedStats.totalDocuments || 0
     },
     {
       name: 'QR Code Generator',
@@ -119,7 +127,7 @@ const Dashboard = () => {
       icon: IoQrCode,
       color: 'from-orange-500 to-red-500',
       path: '/qr',
-      count: 0
+      count: animatedStats.totalQRCodes || 0
     },
     {
       name: 'URL Shortener',
@@ -127,7 +135,7 @@ const Dashboard = () => {
       icon: IoLink,
       color: 'from-indigo-500 to-purple-500',
       path: '/url-shortener',
-      count: 0
+      count: animatedStats.totalShortUrls || 0
     },
     {
       name: '10 Minute Email',
@@ -135,7 +143,7 @@ const Dashboard = () => {
       icon: IoMail,
       color: 'from-pink-500 to-rose-500',
       path: '/temp-email',
-      count: 0
+      count: animatedStats.totalTempEmails || 0
     }
   ];
 

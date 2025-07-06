@@ -1,5 +1,7 @@
 const express = require('express');
 const Image = require('../models/Image');
+const ShortUrl = require('../models/ShortUrl');
+const TempEmail = require('../models/TempEmail');
 const path = require('path');
 const fs = require('fs');
 
@@ -50,6 +52,28 @@ router.get('/stats', async (req, res) => {
       });
     }
 
+    // Count processed documents
+    const documentsPath = path.join(__dirname, '../uploads/documents');
+    let totalDocuments = 0;
+    if (fs.existsSync(documentsPath)) {
+      const docFiles = fs.readdirSync(documentsPath);
+      totalDocuments = docFiles.length;
+    }
+
+    // Count generated QR codes
+    const qrCodesPath = path.join(__dirname, '../uploads/qr-codes');
+    let totalQRCodes = 0;
+    if (fs.existsSync(qrCodesPath)) {
+      const qrFiles = fs.readdirSync(qrCodesPath);
+      totalQRCodes = qrFiles.length;
+    }
+
+    // Count short URLs
+    const totalShortUrls = await ShortUrl.countDocuments();
+
+    // Count temp emails
+    const totalTempEmails = await TempEmail.countDocuments();
+
     // Get recent activity
     const recentImages = await Image.find()
       .sort({ createdAt: -1 })
@@ -65,7 +89,11 @@ router.get('/stats', async (req, res) => {
         totalConversions,
         conversionsThisMonth,
         storageUsed: Math.round(storageUsed / (1024 * 1024)), // MB
-        totalProjects: totalImages + totalConversions
+        totalProjects: totalImages + totalConversions,
+        totalDocuments,
+        totalQRCodes,
+        totalShortUrls,
+        totalTempEmails
       },
       recentActivity: recentImages
     });
