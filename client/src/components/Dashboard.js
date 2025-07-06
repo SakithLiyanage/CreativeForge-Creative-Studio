@@ -13,7 +13,9 @@ import {
   IoStar,
   IoSwapHorizontal,
   IoDocumentText,
-  IoQrCode
+  IoQrCode,
+  IoLink,
+  IoMail
 } from 'react-icons/io5';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -117,6 +119,22 @@ const Dashboard = () => {
       icon: IoQrCode,
       color: 'from-orange-500 to-red-500',
       path: '/qr',
+      count: 0
+    },
+    {
+      name: 'URL Shortener',
+      description: 'Create short links with detailed analytics',
+      icon: IoLink,
+      color: 'from-indigo-500 to-purple-500',
+      path: '/url-shortener',
+      count: 0
+    },
+    {
+      name: '10 Minute Email',
+      description: 'Temporary email addresses for quick signups',
+      icon: IoMail,
+      color: 'from-pink-500 to-rose-500',
+      path: '/temp-email',
       count: 0
     }
   ];
@@ -362,12 +380,14 @@ const Dashboard = () => {
       {/* Enhanced Floating Action Panel */}
       <div className="fixed bottom-8 right-8 z-50">
         <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-2xl border border-white/20">
-          <div className="flex space-x-4">
+          <div className="grid grid-cols-2 gap-3">
             {[
-              { to: '/generate', icon: IoSparkles, gradient: 'from-indigo-500 to-purple-500', label: 'Generate' },
+              { to: '/generate', icon: IoSparkles, gradient: 'from-indigo-500 to-purple-500', label: 'AI Studio' },
               { to: '/convert', icon: IoVideocam, gradient: 'from-blue-500 to-cyan-500', label: 'Convert' },
               { to: '/documents', icon: IoDocumentText, gradient: 'from-green-500 to-teal-500', label: 'Documents' },
-              { to: '/qr', icon: IoQrCode, gradient: 'from-orange-500 to-red-500', label: 'QR Codes' }
+              { to: '/qr', icon: IoQrCode, gradient: 'from-orange-500 to-red-500', label: 'QR Codes' },
+              { to: '/url-shortener', icon: IoLink, gradient: 'from-indigo-500 to-purple-500', label: 'URL Short' },
+              { to: '/temp-email', icon: IoMail, gradient: 'from-pink-500 to-rose-500', label: 'Temp Email' }
             ].map((action, index) => (
               <Link
                 key={index}
@@ -375,8 +395,8 @@ const Dashboard = () => {
                 className="group flex flex-col items-center space-y-2"
                 title={action.label}
               >
-                <div className={`w-16 h-16 bg-gradient-to-r ${action.gradient} rounded-2xl flex items-center justify-center hover-scale shadow-xl group-hover:shadow-2xl transition-all duration-300`}>
-                  <action.icon className="text-white text-2xl" />
+                <div className={`w-12 h-12 bg-gradient-to-r ${action.gradient} rounded-2xl flex items-center justify-center hover-scale shadow-xl group-hover:shadow-2xl transition-all duration-300`}>
+                  <action.icon className="text-white text-lg" />
                 </div>
                 <span className="text-xs font-semibold text-gray-600 group-hover:text-gray-900 transition-colors duration-200">
                   {action.label}
