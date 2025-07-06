@@ -39,7 +39,7 @@ const AdvancedNavbar = () => {
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl font-black gradient-text">CreativeForge</h1>
-              <p className="text-xs text-gray-500 -mt-1">AI Creative Studio</p>
+              <p className="text-xs text-gray-500 -mt-1">Creative Studio</p>
             </div>
           </Link>
 

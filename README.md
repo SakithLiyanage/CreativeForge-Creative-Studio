@@ -1,235 +1,84 @@
-# CreativeForge - AI Creative Studio
+# CreativeForge Platform
 
-A modern, professional web application for AI-powered image generation, media conversion, and document processing.
+A full-featured, modern web app for creative media processing, powered by free AI APIs.
 
 ## 🚀 Features
 
-### ✨ AI Image Generation
-- Multiple AI services (Pollinations, Stable Horde, DALL-E Mini)
-- High-quality image generation
-- Smart fallback system
-- Download and sharing capabilities
+- **AI Image Generation**: Create stunning images from text prompts using DALL-E, Stable Diffusion, and more.
+- **Document Processor**:
+  - PDF merge, split, convert (PDF <-> DOCX), and text extraction
+  - **AI Summarization**: Summarize long documents or extracted text using HuggingFace models
+  - **AI Auto-Tagging**: Generate tags for documents using AI zero-shot classification
+- **AI Image Auto-Tagging**: Generate descriptive tags for images using HuggingFace Spaces (image captioning)
+- **QR Code Generator**: Create QR codes for URLs, text, WiFi, and more
+- **URL Shortener**: Create and manage short links with analytics
+- **Temporary Email**: Generate real, disposable email addresses using the 1secmail API
+- **Chatbot**: Interactive chatbot available on all pages with helpful responses and creative assistance
+- **Real-Time Dashboard**: View live stats for all features (images, documents, QR codes, short URLs, temp emails, etc.)
+- **Modern UI**: Responsive, mobile-friendly, and beautiful design
 
-### 🎬 Media Conversion
-- Image format conversion (JPG, PNG, WebP, etc.)
-- Video format conversion
-- High-quality processing with FFmpeg
-- Batch processing support
+## 🛠️ Tech Stack
+- **Frontend**: React, Tailwind CSS
+- **Backend**: Node.js, Express, MongoDB
+- **AI/ML APIs**: HuggingFace Inference API, 1secmail
 
-### 📄 Document Processing
-- PDF Merger - Combine multiple PDFs
-- DOCX to PDF conversion
-- PDF to DOCX conversion
-- PDF splitter (by pages or ranges)
-- Text extraction from documents
+## 🆓 Free API Usage
+- **HuggingFace**: Used for text summarization, document tagging
+- **1secmail**: Used for real temporary email addresses
 
-### 🎨 Modern UI/UX
-- Clean, professional design
-- Responsive layout
-- Smooth animations
-- Real-time progress indicators
+## ⚡ Setup Instructions
 
-## 🛠️ Technology Stack
-
-### Backend
-- **Node.js** with Express.js
-- **MongoDB** for data storage
-- **Multer** for file uploads
-- **Sharp** for image processing
-- **FFmpeg** for video processing
-- **PDF-lib** for PDF manipulation
-- **Mammoth** for DOCX processing
-
-### Frontend
-- **React.js** with modern hooks
-- **Tailwind CSS** for styling
-- **React Router** for navigation
-- **Axios** for API calls
-- **React Icons** for UI icons
-
-## 📦 Installation
-
-### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (local or cloud)
-- FFmpeg (for video processing)
-
-### Setup Instructions
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
+### 1. Clone the repo
+```sh
+git clone <your-repo-url>
 cd MediaWeb
 ```
 
-2. **Install server dependencies**
-```bash
+### 2. Install dependencies
+```sh
 npm install
-```
-
-3. **Install client dependencies**
-```bash
-cd client
-npm install
+cd client && npm install
 cd ..
 ```
 
-4. **Environment Configuration**
+### 3. Set up environment variables
 Create a `.env` file in the root directory:
-```env
-# Database
-MONGODB_URI=mongodb://localhost:27017/mediaweb
-
-# AI Services (Optional)
-HUGGINGFACE_API_KEY=your_huggingface_token_here
-OPENAI_API_KEY=your_openai_key_here
-
-# Server Configuration
-NODE_ENV=development
-PORT=5000
 ```
-
-5. **Start the application**
-
-Development mode:
-```bash
-# Terminal 1 - Start backend
-npm run server
-
-# Terminal 2 - Start frontend
-npm run client
+HF_TOKEN=your_huggingface_token_here
 ```
+- Get a free HuggingFace token at https://huggingface.co/settings/tokens (choose "Read" access)
 
-Production mode:
-```bash
+### 4. Start the backend
+```sh
 npm start
 ```
 
-## 🎯 Usage
-
-### Image Generation
-1. Navigate to AI Studio
-2. Enter a descriptive prompt
-3. Select AI service (or use Auto)
-4. Click "Generate AI Image"
-5. Download or view full size
-
-### Media Conversion
-1. Go to Media Converter
-2. Upload your files
-3. Select target format
-4. Configure quality settings
-5. Process and download
-
-### Document Processing
-1. Access Documents section
-2. Choose operation (merge, convert, split, extract)
-3. Upload files
-4. Configure options
-5. Process and download results
-
-## 📁 Project Structure
-
-```
-MediaWeb/
-├── client/                 # React frontend
-│   ├── public/
-│   ├── src/
-│   │   ├── components/     # Reusable components
-│   │   ├── pages/         # Main pages
-│   │   └── index.js       # App entry point
-│   └── package.json
-├── routes/                # API routes
-│   ├── images.js         # Image generation
-│   ├── convert.js        # Media conversion
-│   ├── documents.js      # Document processing
-│   └── analytics.js      # Analytics
-├── models/               # MongoDB models
-├── uploads/              # File storage
-├── server.js            # Express server
-└── package.json
-```
-
-## 🔧 Configuration
-
-### MongoDB Setup
-- Install MongoDB locally or use MongoDB Atlas
-- Update `MONGODB_URI` in `.env`
-
-### AI Services Setup
-- **Hugging Face**: Free signup at huggingface.co
-- **OpenAI**: Paid service for DALL-E
-
-### FFmpeg Installation
-- **Windows**: Download from ffmpeg.org
-- **macOS**: `brew install ffmpeg`
-- **Linux**: `sudo apt install ffmpeg`
-
-## 📊 API Endpoints
-
-### Image Generation
-- `POST /api/images/generate` - Generate AI images
-- `GET /api/images` - Get recent images
-
-### Media Conversion
-- `POST /api/convert/image` - Convert images
-- `POST /api/convert/video` - Convert videos
-
-### Document Processing
-- `POST /api/documents/merge-pdf` - Merge PDFs
-- `POST /api/documents/docx-to-pdf` - Convert DOCX to PDF
-- `POST /api/documents/pdf-to-docx` - Convert PDF to DOCX
-- `POST /api/documents/split-pdf` - Split PDFs
-- `POST /api/documents/extract-text` - Extract text
-
-## 🚀 Deployment
-
-### Development
-```bash
-npm run dev
-```
-
-### Production Build
-```bash
-# Build frontend
-cd client && npm run build
-
-# Start production server
+### 5. Start the frontend
+```sh
+cd client
 npm start
 ```
 
-### Environment Variables
-Set these in production:
-- `NODE_ENV=production`
-- `MONGODB_URI=<production-db-url>`
-- Add API keys for AI services
+- Backend: http://localhost:5000
+- Frontend: http://localhost:3000
 
-## 🤝 Contributing
+## 📝 Usage Notes
+- **AI features** require a valid HuggingFace token in `.env`.
+- **Image auto-tagging** uses a public HuggingFace Space; if the Space is down, this feature may be temporarily unavailable.
+- **Image enhancement** is not available due to lack of free public upscaler APIs.
+- **AI Chatbot** is available on all pages - positioned on the left for Dashboard, right for other pages.
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+## 📦 Folder Structure
+- `client/` — React frontend
+- `routes/` — Express API routes (images, documents, ai, qr, temp-email, etc.)
+- `models/` — Mongoose models
+- `uploads/` — Uploaded/generated files
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue on GitHub
-- Check existing documentation
-- Review API endpoints
-
-## 🎨 Brand
-
-**CreativeForge** - AI Creative Studio
-- Colors: Indigo (#6366f1), Purple (#8b5cf6), Pink (#ec4899)
-- Modern, professional, creative design
-- Focus on user experience and performance
+## ✨ Credits
+- [HuggingFace](https://huggingface.co/) for free AI models and Spaces
+- [1secmail](https://www.1secmail.com/) for temp email API
+- [pdf-lib](https://pdf-lib.js.org/), [mammoth.js](https://github.com/mwilliamson/mammoth.js), and other open-source tools
 
 ---
 
-Made with ❤️ by Sakith Liyanage
+**Enjoy your all-in-one AI-powered creative platform!**

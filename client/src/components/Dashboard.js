@@ -167,10 +167,8 @@ const Dashboard = () => {
               <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
                 <IoSparkles className="text-white animate-pulse" />
               </div>
-              <span className="text-sm font-bold gradient-text">CreativeForge AI Platform</span>
-              <div className="px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full">
-                <span className="text-xs font-bold text-green-700">✨ Beta</span>
-              </div>
+              <span className="text-sm font-bold gradient-text">CreativeForge Platform</span>
+              
             </div>
             
             <h1 className="text-8xl md:text-9xl font-black mb-8 leading-tight text-display tracking-tight">
@@ -181,7 +179,7 @@ const Dashboard = () => {
             
             <p className="text-2xl md:text-3xl text-gray-600 max-w-5xl mx-auto font-light leading-relaxed mb-16">
               Transform your creative vision into reality with our comprehensive suite of 
-              <span className="gradient-text font-semibold"> AI-powered tools</span>
+              <span className="gradient-text font-semibold"> creative tools</span>
             </p>
 
             <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
@@ -294,9 +292,7 @@ const Dashboard = () => {
                   <div className="relative card-modern hover-lift animate-slide-up-fade bg-white/80 backdrop-blur-sm border-0 shadow-2xl overflow-hidden">
                     {tool.popular && (
                       <div className="absolute -top-4 -right-4 z-10">
-                        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black px-6 py-2 rounded-full shadow-lg animate-bounce">
-                          ⭐ Popular
-                        </div>
+                        
                       </div>
                     )}
 
