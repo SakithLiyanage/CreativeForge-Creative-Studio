@@ -6,6 +6,9 @@ const Gallery = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [tags, setTags] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
 
   useEffect(() => {
     fetchImages();
@@ -27,6 +30,24 @@ const Gallery = () => {
     if (filter === 'recent') return new Date(image.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     return true;
   });
+
+  const handleTagImage = async () => {
+    if (!selectedImage) return;
+    setAiLoading(true);
+    setAiError('');
+    setTags([]);
+    try {
+      const blob = await fetch(selectedImage.imageUrl).then(r => r.blob());
+      const formData = new FormData();
+      formData.append('image', blob, 'image.png');
+      const response = await axios.post('/api/ai/tag-image', formData);
+      setTags(response.data.tags);
+    } catch (err) {
+      setAiError('Failed to tag image.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pt-24 pb-12">
@@ -132,7 +153,25 @@ const Gallery = () => {
                 >
                   Close
                 </button>
+                <button
+                  onClick={handleTagImage}
+                  className="px-6 py-2 bg-yellow-500 text-white rounded-xl hover:shadow-lg transition-all duration-300"
+                  disabled={aiLoading}
+                >
+                  Auto-Tag
+                </button>
               </div>
+              {aiError && <div className="mt-4 text-red-400">{aiError}</div>}
+              {tags.length > 0 && (
+                <div className="mt-4 p-3 bg-green-50 rounded-xl border border-green-200">
+                  <h5 className="font-bold text-green-700 mb-1">AI Tags:</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag, idx) => (
+                      <span key={idx} className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

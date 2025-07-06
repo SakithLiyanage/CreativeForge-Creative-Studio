@@ -18,6 +18,9 @@ const DocumentProcessor = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [summary, setSummary] = useState('');
+  const [tags, setTags] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const tools = [
     {
@@ -144,6 +147,34 @@ const DocumentProcessor = () => {
       setError(error.response?.data?.error || error.response?.data?.message || 'Processing failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSummarize = async () => {
+    if (!result?.extractedText) return;
+    setAiLoading(true);
+    setSummary('');
+    try {
+      const response = await axios.post('/api/ai/summarize', { text: result.extractedText });
+      setSummary(response.data.summary);
+    } catch (err) {
+      setSummary('Failed to summarize.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleTagDocument = async () => {
+    if (!result?.extractedText) return;
+    setAiLoading(true);
+    setTags([]);
+    try {
+      const response = await axios.post('/api/ai/tag-document', { text: result.extractedText });
+      setTags(response.data.tags);
+    } catch (err) {
+      setTags(['Failed to tag.']);
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -391,6 +422,30 @@ const DocumentProcessor = () => {
                       <div className="bg-white p-3 rounded-xl border text-sm text-gray-700 max-h-48 overflow-y-auto">
                         {result.extractedText}
                       </div>
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={handleSummarize} className="btn-secondary text-sm" disabled={aiLoading}>
+                          Summarize
+                        </button>
+                        <button onClick={handleTagDocument} className="btn-secondary text-sm" disabled={aiLoading}>
+                          Auto-Tag
+                        </button>
+                      </div>
+                      {summary && (
+                        <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-200">
+                          <h5 className="font-bold text-blue-700 mb-1">AI Summary:</h5>
+                          <div className="text-blue-800 text-sm">{summary}</div>
+                        </div>
+                      )}
+                      {tags.length > 0 && (
+                        <div className="mt-4 p-3 bg-green-50 rounded-xl border border-green-200">
+                          <h5 className="font-bold text-green-700 mb-1">AI Tags:</h5>
+                          <div className="flex flex-wrap gap-2">
+                            {tags.map((tag, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs">{tag}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div className="flex justify-between items-center mt-3 text-sm text-gray-600">
                         <span>{result.characterCount} characters • {result.wordCount} words</span>
                         <button

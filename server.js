@@ -115,6 +115,7 @@ app.use('/api/documents', require('./routes/documents'));
 app.use('/api/qr', require('./routes/qr'));
 app.use('/api/url', require('./routes/urlShortener'));
 app.use('/api/temp-email', require('./routes/tempEmail'));
+app.use('/api/ai', require('./routes/ai'));
 
 // URL redirect for shortened URLs
 app.get('/s/:shortCode', async (req, res) => {
