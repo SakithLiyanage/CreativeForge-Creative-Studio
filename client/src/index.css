@@ -468,3 +468,52 @@ body {
   opacity: 1;
   transform: translateX(0);
 }
+
+/* Icon alignment utilities */
+.icon-align {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.icon-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Button improvements */
+.btn-primary, .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Card header improvements */
+.card-header-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Navigation improvements */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
