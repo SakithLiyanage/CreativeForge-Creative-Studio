@@ -1,15 +1,42 @@
 {
-    "version": 2,
-    "name": "creativeforge-backend",
-
-    "builds": [
-      {
-        "src": "server.js",
-        "use": "@vercel/node"
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
       }
-    ],
-    "routes": [
-      { "src": "/(.*)", 
-      "dest": "/server.js" }
-    ]
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/uploads/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/s/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/client/build/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "server.js": {
+      "maxDuration": 30
+    }
+  }
 }
