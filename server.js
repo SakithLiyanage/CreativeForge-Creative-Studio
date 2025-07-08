@@ -183,21 +183,12 @@ app.use('/api/*', (req, res) => {
 });
 
 // Serve static files from React build
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'client/build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-  });
-} else {
-  app.get('/', (req, res) => {
-    res.json({ 
-      message: 'MediaWeb API Server', 
-      frontend: 'http://localhost:3000',
-      api: `http://localhost:${PORT}/api`
-    });
-  });
-}
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+// Catch all handler: send back React's index.html file
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
 
 // Start server
 app.listen(PORT, () => {
@@ -210,6 +201,15 @@ app.listen(PORT, () => {
 });
 
 // Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('\n🛑 Server shutting down...');
+  process.exit(0);
+});
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
   process.exit(0);
