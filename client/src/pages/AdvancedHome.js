@@ -114,7 +114,7 @@ const AdvancedHome = () => {
             
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                { icon: HiPhotograph, title: "AI Art Studio", description: "Generate breathtaking images with DALL-E 3's advanced AI capabilities", gradient: "from-purple-500 to-pink-500", delay: "0s" }, 
+                { icon: HiPhotograph, title: "AI Art Studio", description: "Generate breathtaking images with advanced AI capabilities", gradient: "from-purple-500 to-pink-500", delay: "0s" }, 
                 { icon: HiSwitchHorizontal, title: "Smart Conversion", description: "Convert media files with intelligent optimization and quality preservation", gradient: "from-blue-500 to-teal-500", delay: "0.2s" }, 
                 { icon: HiLightningBolt, title: "Lightning Fast", description: "Experience blazing-fast processing powered by cutting-edge technology", gradient: "from-yellow-500 to-red-500", delay: "0.4s" }
               ].map((feature, index) => {

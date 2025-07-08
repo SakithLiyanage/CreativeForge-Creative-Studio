@@ -97,7 +97,7 @@ const Dashboard = () => {
   const tools = [
     {
       name: 'AI Image Generator',
-      description: 'Create stunning images with DALL-E 3 AI technology',
+      description: 'Create stunning images with AI technology',
       icon: IoSparkles,
       color: 'from-purple-500 to-pink-500',
       path: '/generate',

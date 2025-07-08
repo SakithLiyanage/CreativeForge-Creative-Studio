@@ -204,15 +204,7 @@ const ImageGenerator = () => {
               )}
 
               {/* Service Info */}
-              <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100">
-                <h4 className="font-bold gradient-text mb-3">🤖 AI Services</h4>
-                <ul className="text-sm text-gray-600 space-y-2">
-                  <li>• <strong>Pollinations AI:</strong> Lightning-fast generation</li>
-                  <li>• <strong>Stable Horde:</strong> Community-powered models</li>
-                  <li>• <strong>DALL-E Mini:</strong> Creative alternatives</li>
-                  <li>• <strong>Smart Fallback:</strong> Guaranteed results</li>
-                </ul>
-              </div>
+             
             </div>
 
             {/* Example Prompts */}

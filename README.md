@@ -4,7 +4,7 @@ A full-featured, modern web app for creative media processing, powered by free A
 
 ## 🚀 Features
 
-- **AI Image Generation**: Create stunning images from text prompts using DALL-E, Stable Diffusion, and more.
+- **AI Image Generation**: Create stunning images from text prompts, Stable Diffusion, and more.
 - **Document Processor**:
   - PDF merge, split, convert (PDF <-> DOCX), and text extraction
   - **AI Summarization**: Summarize long documents or extracted text using HuggingFace models

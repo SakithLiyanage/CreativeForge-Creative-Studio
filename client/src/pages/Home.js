@@ -11,8 +11,28 @@ import {
   HiArrowRight,
   HiPlay
 } from 'react-icons/hi';
+import { IoImages, IoVideocam } from 'react-icons/io5';
 
 const Home = () => {
+  const featuredTools = [
+    {
+      icon: IoImages,
+      title: 'AI Image Generator',
+      description: 'Create stunning visuals from text descriptions',
+      link: '/image-generator',
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    {
+      icon: IoVideocam,
+      title: 'AI Video Generator',
+      description: 'Transform ideas into captivating videos',
+      link: '/video-generator',
+      gradient: 'from-purple-500 to-pink-500',
+      badge: 'New'
+    },
+    // ...existing tools...
+  ];
+
   return (
     <div className="relative min-h-screen overflow-hidden content-with-navbar">
       {/* Hero Section */}
@@ -57,4 +77,3 @@ const Home = () => {
 };
 
 export default Home;
-                  
