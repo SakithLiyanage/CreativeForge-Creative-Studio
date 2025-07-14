@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   IoHome, 
-  IoSparkles, 
-  IoSwapHorizontal, 
-  IoDocumentText,
-  IoQrCode,
-  IoLink,
-  IoMail,
+  IoImages, 
+  IoVideocam,
+  IoSync, 
+  IoQrCode, 
+  IoLink, 
+  IoMail, 
+  IoDocument,
+  IoSparkles,
   IoMenu,
-  IoClose
+  IoClose,
+  IoChevronDown
 } from 'react-icons/io5';
 import LogoComponent from './LogoComponent';
 
@@ -130,4 +133,4 @@ const AdvancedNavbar = () => {
 };
 
 export default AdvancedNavbar;
-         
+

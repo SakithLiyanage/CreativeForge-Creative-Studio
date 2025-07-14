@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { 
-  IoQrCode,
+  IoQrCode, 
+  IoDownload, 
+  IoColorPalette, 
+  IoSettings, 
+  IoCheckmarkCircle,
+  IoAlert,
+  IoSparkles,
+  IoStar,
+  IoArrowForward,
+  IoOpenOutline,
+  IoText,
   IoLink,
   IoMail,
   IoCall,
   IoWifi,
-  IoPerson,
-  IoLocation,
-  IoText,
-  IoDownload,
-  IoColorPalette,
-  IoCopy,
-  IoCheckmarkCircle,
-  IoAlert,
-  IoLayers
+  IoLocation
 } from 'react-icons/io5';
 
 const QRGenerator = () => {
