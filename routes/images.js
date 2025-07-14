@@ -190,7 +190,7 @@ router.post('/generate', async (req, res) => {
     
     res.json({
       success: true,
-      imageUrl: `http://localhost:5000${result.imageUrl}`,
+      imageUrl: `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}${result.imageUrl}`,
       localPath: result.imageUrl,
       prompt: prompt.trim(),
       service: result.service,
@@ -237,7 +237,7 @@ router.get('/', (req, res) => {
       .filter(file => file.match(/\.(png|jpg|jpeg)$/))
       .map(file => ({
         filename: file,
-        url: `http://localhost:5000/uploads/${file}`,
+        url: `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/uploads/${file}`,
         created: fs.statSync(path.join(uploadsDir, file)).birthtime
       }))
       .sort((a, b) => new Date(b.created) - new Date(a.created))
