@@ -78,7 +78,7 @@ const connectDB = async () => {
       await mongoose.connect(process.env.MONGODB_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+        serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
       });
       console.log('✅ MongoDB connected successfully');
@@ -94,8 +94,10 @@ const connectDB = async () => {
   }
 };
 
-// Initialize database connection
-connectDB();
+// Initialize database connection only if not in serverless environment
+if (!process.env.VERCEL) {
+  connectDB();
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -107,15 +109,27 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Routes
-app.use('/api/images', require('./routes/images'));
-app.use('/api/convert', require('./routes/convert'));
-app.use('/api/analytics', require('./routes/analytics'));
-app.use('/api/documents', require('./routes/documents'));
-app.use('/api/qr', require('./routes/qr'));
-app.use('/api/url', require('./routes/urlShortener'));
-app.use('/api/temp-email', require('./routes/tempEmail'));
-app.use('/api/ai', require('./routes/ai'));
+// Routes with error handling
+try {
+  app.use('/api/images', require('./routes/images'));
+  app.use('/api/videos', require('./routes/videos'));
+  app.use('/api/convert', require('./routes/convert'));
+  app.use('/api/analytics', require('./routes/analytics'));
+  app.use('/api/documents', require('./routes/documents'));
+  app.use('/api/qr', require('./routes/qr'));
+  app.use('/api/url', require('./routes/urlShortener'));
+  app.use('/api/temp-email', require('./routes/tempEmail'));
+} catch (error) {
+  console.error('❌ Route loading error:', error);
+  
+  // Fallback routes
+  app.get('/api/*', (req, res) => {
+    res.status(503).json({ 
+      error: 'Service temporarily unavailable',
+      message: 'Some features may be loading. Please try again.'
+    });
+  });
+}
 
 // URL redirect for shortened URLs
 app.get('/s/:shortCode', async (req, res) => {
@@ -228,3 +242,6 @@ process.on('SIGINT', () => {
   console.log('\n🛑 Server shutting down...');
   process.exit(0);
 });
+
+// Export for Vercel
+module.exports = app;
