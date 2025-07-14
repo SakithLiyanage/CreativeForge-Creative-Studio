@@ -451,7 +451,7 @@ const Dashboard = () => {
           
           <div className="border-t border-gray-200 mt-8 pt-8 text-center">
             <p className="text-gray-600 text-sm">
-              © 2025 MediaWeb. Built with ❤️ Sakith Liyanage.
+              © 2025 CreativeForge. Built with ❤️ Sakith Liyanage.
             </p>
           </div>
         </div>
