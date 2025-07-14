@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { 
-  IoMail,
-  IoTime,
-  IoCopy,
-  IoRefresh,
-  IoCheckmarkCircle,
+  IoMail, 
+  IoRefresh, 
+  IoTrash, 
+  IoTime, 
   IoAlert,
-  IoTrash,
+  IoSparkles,
+  IoStar,
+  IoArrowForward,
+  IoOpenOutline,
+  IoText,
+  IoLink,
+  IoDownload,
+  IoEye,
+  IoWarning,
+  IoCopy,
   IoPlay
 } from 'react-icons/io5';
 
@@ -16,17 +24,61 @@ const TempEmail = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [customUsername, setCustomUsername] = useState('');
-  const [selectedDomain, setSelectedDomain] = useState('');
-  const [domains, setDomains] = useState([]);
-  const [isRealEmail, setIsRealEmail] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
-  const [apiProvider, setApiProvider] = useState('');
-  const [apiStatus, setApiStatus] = useState('idle');
+  const [domains, setDomains] = useState([]);
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [apiStatus, setApiStatus] = useState('ready');
+  const [customUsername, setCustomUsername] = useState('');
+  const [apiProvider, setApiProvider] = useState('1secmail');
+  const [isRealEmail, setIsRealEmail] = useState(false);
+
+  const oneSecMailDomains = [
+    '1secmail.com',
+    '1secmail.org',
+    '1secmail.net',
+    'wwjmp.com',
+    'qiott.com',
+    'guerrillamail.info',
+    'guerrillamail.biz',
+    'guerrillamail.com',
+    'guerrillamail.de',
+    'guerrillamail.net',
+    'guerrillamail.org'
+  ];
+
+  const refreshMessagesCallback = useCallback(async () => {
+    if (!email) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.get(`/api/temp-email/messages/${email}`);
+      setMessages(response.data);
+    } catch (error) {
+      console.error('Failed to refresh messages:', error);
+      setError('Failed to refresh messages');
+    } finally {
+      setLoading(false);
+    }
+  }, [email]);
+
+  useEffect(() => {
+    let interval;
+    if (autoRefresh && email) {
+      interval = setInterval(refreshMessagesCallback, 10000);
+    }
+    return () => clearInterval(interval);
+  }, [autoRefresh, email, refreshMessagesCallback]);
+
+  useEffect(() => {
+    if (email) {
+      refreshMessagesCallback();
+    }
+  }, [email, refreshMessagesCallback]);
 
   // Only allow 1secmail-supported domains
-  const oneSecMailDomains = [
+  const oneSecMailSupportedDomains = [
     '1secmail.com',
     '1secmail.org',
     '1secmail.net',
@@ -37,8 +89,8 @@ const TempEmail = () => {
   ];
 
   useEffect(() => {
-    setDomains(oneSecMailDomains);
-    setSelectedDomain(oneSecMailDomains[0]);
+    setDomains(oneSecMailSupportedDomains);
+    setSelectedDomain(oneSecMailSupportedDomains[0]);
   }, []);
 
   useEffect(() => {
@@ -175,7 +227,7 @@ const TempEmail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 content-with-navbar bg-pattern-dots">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 content-with-navbar bg-pattern-dots">
       <div className="relative max-w-7xl mx-auto px-6 py-16">
         
         {/* Header */}
@@ -448,5 +500,3 @@ const TempEmail = () => {
 };
 
 export default TempEmail;
-                      
-                     

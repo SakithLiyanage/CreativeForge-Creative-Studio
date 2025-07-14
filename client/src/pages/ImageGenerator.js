@@ -5,12 +5,13 @@ import {
   IoImages, 
   IoDownload,
   IoOpenOutline,
-  IoRefresh,
   IoStar,
   IoCheckmarkCircle,
-  IoAlert
+  IoAlert,
+  IoVideocam,
+  IoArrowForward
 } from 'react-icons/io5';
-import ParallaxSection from '../components/ParallaxSection';
+import { Link } from 'react-router-dom';
 
 const ImageGenerator = () => {
   const [prompt, setPrompt] = useState('');
@@ -18,7 +19,6 @@ const ImageGenerator = () => {
   const [generatedImage, setGeneratedImage] = useState(null);
   const [error, setError] = useState('');
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [recentImages, setRecentImages] = useState([]);
 
   const examplePrompts = [
     "A futuristic city at sunset with flying cars",
@@ -27,19 +27,6 @@ const ImageGenerator = () => {
     "A majestic dragon flying over mountains",
     "A cyberpunk street scene with neon lights"
   ];
-
-  useEffect(() => {
-    fetchRecentImages();
-  }, []);
-
-  const fetchRecentImages = async () => {
-    try {
-      const response = await axios.get('/api/images');
-      setRecentImages(response.data);
-    } catch (error) {
-      console.error('Failed to fetch recent images:', error);
-    }
-  };
 
   const generateImage = async (e) => {
     e.preventDefault();
@@ -59,7 +46,7 @@ const ImageGenerator = () => {
       const response = await axios.post('/api/images/generate', { 
         prompt: prompt.trim()
       }, {
-        timeout: 60000 // 1 minute timeout
+        timeout: 60000
       });
       
       console.log('✅ Response received:', response.data);
@@ -67,7 +54,6 @@ const ImageGenerator = () => {
       if (response.data.success) {
         setGeneratedImage(response.data);
         setPrompt('');
-        fetchRecentImages(); // Refresh recent images
       } else {
         throw new Error('Generation failed');
       }
@@ -303,3 +289,4 @@ const ImageGenerator = () => {
 };
 
 export default ImageGenerator;
+                 
