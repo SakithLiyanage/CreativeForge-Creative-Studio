@@ -32,6 +32,7 @@ const TempEmail = () => {
   const [apiStatus, setApiStatus] = useState('ready');
   const [customUsername, setCustomUsername] = useState('');
   const [apiProvider, setApiProvider] = useState('1secmail');
+  const [isRealEmail, setIsRealEmail] = useState(false);
 
   const oneSecMailDomains = [
     '1secmail.com',
