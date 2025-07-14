@@ -148,7 +148,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 content-with-navbar">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       
       {/* Enhanced Floating Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -410,6 +410,54 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 mt-16">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="col-span-2 md:col-span-1">
+              <h3 className="text-xl font-bold gradient-text mb-4">MediaWeb</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Your all-in-one platform for media processing, AI generation, and digital utilities.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-4">AI Tools</h4>
+              <ul className="space-y-2">
+                <li><Link to="/generate" className="text-gray-600 hover:text-indigo-600 text-sm">Image Generator</Link></li>
+               
+                <li><Link to="/generate" className="text-gray-600 hover:text-indigo-600 text-sm">AI Studio</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-4">Utilities</h4>
+              <ul className="space-y-2">
+                <li><Link to="/converter" className="text-gray-600 hover:text-indigo-600 text-sm">Media Converter</Link></li>
+                <li><Link to="/qr-generator" className="text-gray-600 hover:text-indigo-600 text-sm">QR Generator</Link></li>
+                <li><Link to="/url-shortener" className="text-gray-600 hover:text-indigo-600 text-sm">URL Shortener</Link></li>
+                <li><Link to="/temp-email" className="text-gray-600 hover:text-indigo-600 text-sm">Temp Email</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-4">Resources</h4>
+              <ul className="space-y-2">
+                <li><Link to="/dashboard" className="text-gray-600 hover:text-indigo-600 text-sm">Dashboard</Link></li>
+                <li><Link to="/analytics" className="text-gray-600 hover:text-indigo-600 text-sm">Analytics</Link></li>
+                <li><a href="https://github.com/SakithLiyanage/CreativeForge-Creative-Studio" className="text-gray-600 hover:text-indigo-600 text-sm">GitHub</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-200 mt-8 pt-8 text-center">
+            <p className="text-gray-600 text-sm">
+              © 2025 CreativeForge. Built with ❤️ Sakith Liyanage.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
