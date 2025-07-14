@@ -13,7 +13,11 @@ import {
   IoMail,
   IoCall,
   IoWifi,
-  IoLocation
+  IoLocation,
+  IoTime,
+  IoAnalytics,
+  IoCopy,
+  IoBarChart
 } from 'react-icons/io5';
 
 const UrlShortener = () => {

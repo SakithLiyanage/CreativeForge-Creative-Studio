@@ -5,7 +5,6 @@ import {
   IoRefresh, 
   IoTrash, 
   IoTime, 
-  IoCheckmarkCircle,
   IoAlert,
   IoSparkles,
   IoStar,
@@ -15,7 +14,9 @@ import {
   IoLink,
   IoDownload,
   IoEye,
-  IoWarning
+  IoWarning,
+  IoCopy,
+  IoPlay
 } from 'react-icons/io5';
 
 const TempEmail = () => {
@@ -25,6 +26,12 @@ const TempEmail = () => {
   const [error, setError] = useState('');
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [domains, setDomains] = useState([]);
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [apiStatus, setApiStatus] = useState('ready');
+  const [customUsername, setCustomUsername] = useState('');
+  const [apiProvider, setApiProvider] = useState('1secmail');
 
   const oneSecMailDomains = [
     '1secmail.com',

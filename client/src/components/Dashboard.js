@@ -5,7 +5,9 @@ import {
   IoTrendingUp, 
   IoDocument, 
   IoQrCode, 
-  IoMail
+  IoMail,
+  IoServer,
+  IoHeart
 } from 'react-icons/io5';
 import axios from 'axios';
 import ParallaxSection from './ParallaxSection';
@@ -355,4 +357,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-               
+

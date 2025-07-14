@@ -12,7 +12,9 @@ import {
   IoSparkles,
   IoMenu,
   IoClose,
-  IoChevronDown
+  IoChevronDown,
+  IoSwapHorizontal,
+  IoDocumentText
 } from 'react-icons/io5';
 import LogoComponent from './LogoComponent';
 

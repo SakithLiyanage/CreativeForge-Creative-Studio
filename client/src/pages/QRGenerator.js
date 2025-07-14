@@ -16,7 +16,9 @@ import {
   IoMail,
   IoCall,
   IoWifi,
-  IoLocation
+  IoLocation,
+  IoPerson,
+  IoCopy
 } from 'react-icons/io5';
 
 const QRGenerator = () => {
