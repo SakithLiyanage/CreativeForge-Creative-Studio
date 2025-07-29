@@ -1,98 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   IoSparkles, 
-  IoImages, 
-  IoVideocam,
-  IoStatsChart,
-  IoTrendingUp,
-  IoTime,
+  IoTrendingUp, 
+  IoDocument, 
+  IoQrCode, 
+  IoMail,
   IoServer,
-  IoHeart,
-  IoEye,
-  IoDownload,
-  IoStar,
-  IoSwapHorizontal,
-  IoDocumentText,
-  IoQrCode,
-  IoLink,
-  IoMail
+  IoHeart
 } from 'react-icons/io5';
-import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ParallaxSection from './ParallaxSection';
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({
+  const [analytics, setAnalytics] = useState({
     totalImages: 0,
-    imagesThisMonth: 0,
-    imagesThisWeek: 0,
+    totalVideos: 0,
     totalConversions: 0,
-    conversionsThisMonth: 0,
-    storageUsed: 0,
-    totalProjects: 0,
-    totalDocuments: 0,
     totalQRCodes: 0,
     totalShortUrls: 0,
-    totalTempEmails: 0
+    totalDocuments: 0
   });
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [animatedStats, setAnimatedStats] = useState({});
+  
+  const fetchAnalytics = useCallback(async () => {
+    try {
+      const response = await fetch('/api/analytics');
+      const data = await response.json();
+      setAnalytics(data);
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error);
+    }
+  }, []);
 
   useEffect(() => {
     fetchAnalytics();
-  }, []);
-
-  const fetchAnalytics = async () => {
-    try {
-      const response = await axios.get('/api/analytics/stats');
-      const data = response.data.stats;
-      setStats(data);
-      setRecentActivity(response.data.recentActivity);
-      
-      // Animate counters
-      Object.keys(data).forEach(key => {
-        if (typeof data[key] === 'number') {
-          animateCounter(data[key], key);
-        }
-      });
-    } catch (error) {
-      console.error('Error fetching analytics:', error);
-      // Fallback to demo data if backend is not available
-      const demoStats = {
-        totalImages: 1247,
-        imagesThisMonth: 156,
-        imagesThisWeek: 42,
-        totalConversions: 856,
-        conversionsThisMonth: 98,
-        storageUsed: 245,
-        totalProjects: 2103,
-        totalDocuments: 1200,
-        totalQRCodes: 500,
-        totalShortUrls: 1000,
-        totalTempEmails: 200
-      };
-      setStats(demoStats);
-      Object.keys(demoStats).forEach(key => {
-        animateCounter(demoStats[key], key);
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const animateCounter = (target, key, duration = 2000) => {
-    let start = 0;
-    const increment = target / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= target) {
-        start = target;
-        clearInterval(timer);
-      }
-      setAnimatedStats(prev => ({ ...prev, [key]: Math.floor(start) }));
-    }, 16);
-  };
+  }, [fetchAnalytics]);
 
   const tools = [
     {
@@ -102,24 +44,24 @@ const Dashboard = () => {
       color: 'from-purple-500 to-pink-500',
       path: '/generate',
       popular: true,
-      count: animatedStats.totalImages || 0
+      count: analytics.totalImages || 0
     },
     {
       name: 'Media Converter Pro',
       description: 'Convert images & videos with professional quality',
-      icon: IoVideocam,
+      icon: IoTrendingUp,
       color: 'from-blue-500 to-teal-500',
       path: '/convert',
       popular: true,
-      count: animatedStats.totalConversions || 0
+      count: analytics.totalConversions || 0
     },
     {
       name: 'Document Processor',
       description: 'PDF merge, split, convert and text extraction',
-      icon: IoDocumentText,
+      icon: IoDocument,
       color: 'from-green-500 to-blue-500',
       path: '/documents',
-      count: animatedStats.totalDocuments || 0
+      count: analytics.totalDocuments || 0
     },
     {
       name: 'QR Code Generator',
@@ -127,15 +69,15 @@ const Dashboard = () => {
       icon: IoQrCode,
       color: 'from-orange-500 to-red-500',
       path: '/qr',
-      count: animatedStats.totalQRCodes || 0
+      count: analytics.totalQRCodes || 0
     },
     {
       name: 'URL Shortener',
       description: 'Create short links with detailed analytics',
-      icon: IoLink,
+      icon: IoMail,
       color: 'from-indigo-500 to-purple-500',
       path: '/url-shortener',
-      count: animatedStats.totalShortUrls || 0
+      count: analytics.totalShortUrls || 0
     },
     {
       name: '10 Minute Email',
@@ -143,7 +85,7 @@ const Dashboard = () => {
       icon: IoMail,
       color: 'from-pink-500 to-rose-500',
       path: '/temp-email',
-      count: animatedStats.totalTempEmails || 0
+      count: analytics.totalTempEmails || 0
     }
   ];
 
@@ -193,14 +135,14 @@ const Dashboard = () => {
               
               <Link to="/convert" className="group">
                 <button className="btn-secondary text-lg px-8 py-4 group-hover:shadow-xl transition-all duration-300">
-                  <IoSwapHorizontal className="inline mr-3 text-xl" />
+                  <IoTrendingUp className="inline mr-3 text-xl" />
                   Convert Media
                 </button>
               </Link>
               
               <Link to="/documents" className="group">
                 <button className="btn-secondary text-lg px-8 py-4 group-hover:shadow-xl transition-all duration-300">
-                  <IoDocumentText className="inline mr-3 text-xl" />
+                  <IoDocument className="inline mr-3 text-xl" />
                   Process Documents
                 </button>
               </Link>
@@ -212,7 +154,7 @@ const Dashboard = () => {
             {[
               {
                 label: 'Images Generated', 
-                value: animatedStats.totalImages || 0, 
+                value: analytics.totalImages || 0, 
                 icon: IoSparkles, 
                 gradient: 'from-indigo-500 to-purple-500',
                 bgGradient: 'from-indigo-50 to-purple-50',
@@ -220,15 +162,15 @@ const Dashboard = () => {
               },
               { 
                 label: 'Files Converted', 
-                value: animatedStats.totalConversions || 0, 
-                icon: IoVideocam, 
+                value: analytics.totalConversions || 0, 
+                icon: IoTrendingUp, 
                 gradient: 'from-blue-500 to-cyan-500',
                 bgGradient: 'from-blue-50 to-cyan-50',
                 trend: '+8%'
               },
               { 
                 label: 'Storage Used', 
-                value: animatedStats.storageUsed || 0, 
+                value: analytics.storageUsed || 0, 
                 unit: 'MB',
                 icon: IoServer, 
                 gradient: 'from-green-500 to-teal-500',
@@ -237,7 +179,7 @@ const Dashboard = () => {
               },
               { 
                 label: 'Total Projects', 
-                value: animatedStats.totalProjects || 0, 
+                value: analytics.totalProjects || 0, 
                 icon: IoHeart, 
                 gradient: 'from-pink-500 to-rose-500',
                 bgGradient: 'from-pink-50 to-rose-50',
@@ -387,10 +329,10 @@ const Dashboard = () => {
           <div className="grid grid-cols-2 gap-3">
             {[
               { to: '/generate', icon: IoSparkles, gradient: 'from-indigo-500 to-purple-500', label: 'AI Studio' },
-              { to: '/convert', icon: IoVideocam, gradient: 'from-blue-500 to-cyan-500', label: 'Convert' },
-              { to: '/documents', icon: IoDocumentText, gradient: 'from-green-500 to-teal-500', label: 'Documents' },
+              { to: '/convert', icon: IoTrendingUp, gradient: 'from-blue-500 to-cyan-500', label: 'Convert' },
+              { to: '/documents', icon: IoDocument, gradient: 'from-green-500 to-teal-500', label: 'Documents' },
               { to: '/qr', icon: IoQrCode, gradient: 'from-orange-500 to-red-500', label: 'QR Codes' },
-              { to: '/url-shortener', icon: IoLink, gradient: 'from-indigo-500 to-purple-500', label: 'URL Short' },
+              { to: '/url-shortener', icon: IoMail, gradient: 'from-indigo-500 to-purple-500', label: 'URL Short' },
               { to: '/temp-email', icon: IoMail, gradient: 'from-pink-500 to-rose-500', label: 'Temp Email' }
             ].map((action, index) => (
               <Link
@@ -410,54 +352,9 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-16">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="col-span-2 md:col-span-1">
-              <h3 className="text-xl font-bold gradient-text mb-4">CreativeForge</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Your all-in-one platform for media processing, AI generation, and digital utilities.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">AI Tools</h4>
-              <ul className="space-y-2">
-                <li><Link to="/generate" className="text-gray-600 hover:text-indigo-600 text-sm">Image Generator</Link></li>
-                <li><Link to="/generate" className="text-gray-600 hover:text-indigo-600 text-sm">AI Studio</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Utilities</h4>
-              <ul className="space-y-2">
-                <li><Link to="/converter" className="text-gray-600 hover:text-indigo-600 text-sm">Media Converter</Link></li>
-                <li><Link to="/qr-generator" className="text-gray-600 hover:text-indigo-600 text-sm">QR Generator</Link></li>
-                <li><Link to="/url-shortener" className="text-gray-600 hover:text-indigo-600 text-sm">URL Shortener</Link></li>
-                <li><Link to="/temp-email" className="text-gray-600 hover:text-indigo-600 text-sm">Temp Email</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Resources</h4>
-              <ul className="space-y-2">
-                <li><Link to="/dashboard" className="text-gray-600 hover:text-indigo-600 text-sm">Dashboard</Link></li>
-                <li><a href="https://github.com/SakithLiyanage/CreativeForge-Creative-Studio" className="text-gray-600 hover:text-indigo-600 text-sm">GitHub</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-200 mt-8 pt-8 text-center">
-            <p className="text-gray-600 text-sm">
-              © 2025 CreativeForge. Built with ❤️ Sakith Liyanage.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
 
 export default Dashboard;
+

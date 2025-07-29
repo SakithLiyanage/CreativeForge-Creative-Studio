@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -157,6 +158,15 @@ const imageServices = {
   }
 };
 
+// Image model with fallback
+let Image;
+try {
+  Image = require('../models/Image');
+} catch (error) {
+  console.log('📝 Image model not found, using memory storage');
+  Image = null;
+}
+
 // Main generation function
 const generateImage = async (prompt) => {
   const servicesToTry = ['pollinations', 'stablehorde', 'dallemini', 'placeholder'];
@@ -190,7 +200,7 @@ router.post('/generate', async (req, res) => {
     
     res.json({
       success: true,
-      imageUrl: `http://localhost:5000${result.imageUrl}`,
+      imageUrl: `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}${result.imageUrl}`,
       localPath: result.imageUrl,
       prompt: prompt.trim(),
       service: result.service,
@@ -230,22 +240,21 @@ router.get('/download/:filename', (req, res) => {
   }
 });
 
-// List generated images
-router.get('/', (req, res) => {
+// Get all images with error handling
+router.get('/', async (req, res) => {
   try {
-    const files = fs.readdirSync(uploadsDir)
-      .filter(file => file.match(/\.(png|jpg|jpeg)$/))
-      .map(file => ({
-        filename: file,
-        url: `http://localhost:5000/uploads/${file}`,
-        created: fs.statSync(path.join(uploadsDir, file)).birthtime
-      }))
-      .sort((a, b) => new Date(b.created) - new Date(a.created))
-      .slice(0, 20);
+    let images = [];
     
-    res.json(files);
+    if (Image && mongoose.connection.readyState === 1) {
+      images = await Image.find().sort({ createdAt: -1 }).limit(20);
+    } else {
+      images = imagesMemory.slice(-20).reverse();
+    }
+    
+    res.json(images);
   } catch (error) {
-    res.json([]);
+    console.error('❌ Error fetching images:', error);
+    res.status(200).json([]); // Return empty array instead of error
   }
 });
 

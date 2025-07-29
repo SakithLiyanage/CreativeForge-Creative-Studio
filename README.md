@@ -1,5 +1,8 @@
 # CreativeForge Platform
 
+<img width="3500" height="2333" alt="195" src="https://github.com/user-attachments/assets/3cdbed15-1051-4b69-8092-63296ee5191e" />
+
+
 A full-featured, modern web app for creative media processing, powered by free AI APIs.
 
 ## 🚀 Features

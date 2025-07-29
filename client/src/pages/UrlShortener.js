@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
-  IoLink,
+  IoLink, 
+  IoSparkles, 
+  IoCheckmarkCircle, 
+  IoAlert, 
+  IoDownload, 
+  IoStar,
+  IoArrowForward,
+  IoOpenOutline,
+  IoText,
+  IoMail,
+  IoCall,
+  IoWifi,
+  IoLocation,
+  IoTime,
   IoAnalytics,
   IoCopy,
-  IoCheckmarkCircle,
-  IoAlert,
-  IoBarChart,
-  IoTime,
-  IoEye
+  IoBarChart
 } from 'react-icons/io5';
 
 const UrlShortener = () => {
