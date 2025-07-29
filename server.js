@@ -20,8 +20,8 @@ if (!process.env.VERCEL) {
 
 // Middleware
 app.use(cors({
-  origin: ['https://creative-forge-creative-studio-back.vercel.app', 'https://creative-forge-creative-studio-backend-h6q5dxs3u.vercel.app', 'http://localhost:3000', 'http://127.0.0.1:3000'],
-  credentials: true,
+  origin: true, // Allow all origins for now
+  credentials: false,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

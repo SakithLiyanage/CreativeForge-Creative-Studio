@@ -11,6 +11,7 @@ import TempEmail from './pages/TempEmail';
 import ChatBot from './pages/ChatBot';
 import ChatBotWidget from './components/ChatBotWidget';
 import TestConnection from './pages/TestConnection';
+import SimpleTest from './pages/SimpleTest';
 
 function AppContent() {
   const location = useLocation();
@@ -30,6 +31,7 @@ function AppContent() {
           <Route path="/temp-email" element={<TempEmail />} />
           <Route path="/chat" element={<ChatBot />} />
           <Route path="/test" element={<TestConnection />} />
+          <Route path="/simple-test" element={<SimpleTest />} />
         </Routes>
         <ChatBotWidget position={isDashboard ? "left" : "right"} />
       </main>

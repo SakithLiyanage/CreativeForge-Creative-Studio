@@ -10,14 +10,25 @@ const TestConnection = () => {
   const testHealth = async () => {
     try {
       setStatus('Testing health endpoint...');
+      console.log('🔄 Making request to:', api.defaults.baseURL + '/api/health');
       const response = await api.get('/api/health');
       setHealthData(response.data);
       setStatus('✅ Health check successful!');
       setError(null);
     } catch (err) {
-      setError(`Health check failed: ${err.message}`);
+      const errorMessage = `Health check failed: ${err.message}`;
+      if (err.response) {
+        errorMessage += ` (Status: ${err.response.status})`;
+      }
+      setError(errorMessage);
       setStatus('❌ Health check failed');
       console.error('Health check error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        config: err.config
+      });
     }
   };
 
