@@ -5,6 +5,11 @@ const ShortUrl = require('../models/ShortUrl');
 
 const router = express.Router();
 
+// Health check endpoint
+router.get('/', (req, res) => {
+  res.json({ success: true, message: 'URL Shortener route is working!' });
+});
+
 // Generate short URL
 router.post('/shorten', async (req, res) => {
   try {

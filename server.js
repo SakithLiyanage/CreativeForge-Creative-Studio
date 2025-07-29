@@ -116,14 +116,43 @@ app.get('/api/health', (req, res) => {
 
 // Routes with error handling
 try {
+  console.log('🔄 Loading test route...');
+  app.use('/api/test-route', require('./routes/test'));
+  console.log('✅ Test route loaded');
+  
+  console.log('🔄 Loading images route...');
   app.use('/api/images', require('./routes/images'));
+  console.log('✅ Images route loaded');
+  
+  console.log('🔄 Loading videos route...');
   app.use('/api/videos', require('./routes/videos'));
+  console.log('✅ Videos route loaded');
+  
+  console.log('🔄 Loading convert route...');
   app.use('/api/convert', require('./routes/convert'));
+  console.log('✅ Convert route loaded');
+  
+  console.log('🔄 Loading analytics route...');
   app.use('/api/analytics', require('./routes/analytics'));
+  console.log('✅ Analytics route loaded');
+  
+  console.log('🔄 Loading documents route...');
   app.use('/api/documents', require('./routes/documents'));
+  console.log('✅ Documents route loaded');
+  
+  console.log('🔄 Loading QR route...');
   app.use('/api/qr', require('./routes/qr'));
+  console.log('✅ QR route loaded');
+  
+  console.log('🔄 Loading URL shortener route...');
   app.use('/api/url', require('./routes/urlShortener'));
+  console.log('✅ URL shortener route loaded');
+  
+  console.log('🔄 Loading temp email route...');
   app.use('/api/temp-email', require('./routes/tempEmail'));
+  console.log('✅ Temp email route loaded');
+  
+  console.log('✅ All routes loaded successfully');
 } catch (error) {
   console.error('❌ Route loading error:', error);
   

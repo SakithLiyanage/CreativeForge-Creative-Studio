@@ -186,6 +186,9 @@ try {
   Image = null;
 }
 
+// Memory storage fallback
+const imagesMemory = [];
+
 // Main generation function
 const generateImage = async (prompt) => {
   const servicesToTry = ['pollinations', 'stablehorde', 'dallemini', 'placeholder'];

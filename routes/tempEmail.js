@@ -18,6 +18,11 @@ const availableDomains = [
 // 1secmail API base URL
 const SECMAIL_API_BASE = 'https://www.1secmail.com/api/v1/';
 
+// Health check endpoint
+router.get('/', (req, res) => {
+  res.json({ success: true, message: 'Temp Email route is working!' });
+});
+
 // Test endpoint
 router.get('/test', (req, res) => {
   res.json({

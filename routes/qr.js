@@ -12,6 +12,11 @@ if (!process.env.VERCEL && !fs.existsSync(qrDir)) {
   console.log('📁 Created QR codes directory:', qrDir);
 }
 
+// Health check endpoint
+router.get('/', (req, res) => {
+  res.json({ success: true, message: 'QR route is working!' });
+});
+
 // Generate QR Code
 router.post('/generate', async (req, res) => {
   try {

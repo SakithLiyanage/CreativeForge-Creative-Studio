@@ -607,4 +607,9 @@ router.get('/download/:filename', (req, res) => {
   }
 });
 
+// Health check endpoint
+router.get('/', (req, res) => {
+  res.json({ success: true, message: 'Documents route is working!' });
+});
+
 module.exports = router;

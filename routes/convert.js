@@ -165,6 +165,11 @@ async function convertWithCloudConvert(inputPath, outputFormat, filename) {
   }
 }
 
+// Health check endpoint
+router.get('/', (req, res) => {
+  res.json({ success: true, message: 'Convert route is working!' });
+});
+
 // Image Conversion
 router.post('/image', robustUpload, async (req, res) => {
   try {
