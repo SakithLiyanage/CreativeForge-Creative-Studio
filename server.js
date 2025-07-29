@@ -203,6 +203,25 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
+// Root route handler for Vercel
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'MediaWeb API Server',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/health',
+      test: '/api/test',
+      images: '/api/images',
+      convert: '/api/convert',
+      documents: '/api/documents',
+      qr: '/api/qr',
+      url: '/api/url',
+      tempEmail: '/api/temp-email'
+    }
+  });
+});
+
 // Serve static files from React build (only in non-serverless environments)
 if (!process.env.VERCEL) {
   app.use(express.static(path.join(__dirname, 'client/build')));

@@ -200,7 +200,7 @@ router.post('/generate', async (req, res) => {
     
     res.json({
       success: true,
-      imageUrl: `${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}${result.imageUrl}`,
+      imageUrl: result.imageUrl,
       localPath: result.imageUrl,
       prompt: prompt.trim(),
       service: result.service,
