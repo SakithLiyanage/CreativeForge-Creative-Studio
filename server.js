@@ -1,3 +1,4 @@
+// CommonJS module - do not use ES module syntax
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -201,24 +202,6 @@ app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  console.log('\n🛑 Server shutting down...');
-  process.exit(0);
-});
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  console.log('\n🛑 Server shutting down...');
-  process.exit(0);
-});
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
   process.exit(0);
