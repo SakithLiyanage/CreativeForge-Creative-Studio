@@ -88,12 +88,12 @@ const TestConnection = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Backend URL</h2>
-          <p className="text-lg font-mono bg-gray-100 p-2 rounded">
-            https://creative-forge-creative-studio-backend-h6q5dxs3u.vercel.app
-          </p>
-        </div>
+                 <div className="bg-white rounded-lg shadow-md p-6">
+           <h2 className="text-xl font-semibold mb-4">Backend URL</h2>
+           <p className="text-lg font-mono bg-gray-100 p-2 rounded">
+             https://creative-forge-creative-studio-back.vercel.app
+           </p>
+         </div>
       </div>
     </div>
   );
