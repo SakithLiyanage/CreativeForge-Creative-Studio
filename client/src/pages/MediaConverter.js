@@ -146,7 +146,7 @@ const MediaConverter = () => {
       } else if (error.code === 'ECONNABORTED') {
         errorMessage += 'Request timed out. Please try smaller files or check your connection.';
       } else {
-        errorMessage += error.response?.data?.message || error.message || 'Please try again.';
+        errorMessage += error.response?.data?.error || error.response?.data?.message || error.message || 'Please try again.';
       }
       
       setError(errorMessage);

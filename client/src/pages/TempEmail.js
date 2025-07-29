@@ -53,11 +53,11 @@ const TempEmail = () => {
 
     setLoading(true);
     try {
-      const response = await api.get(`/api/temp-email/messages/${email}`);
-      setMessages(response.data);
+      const response = await api.get(`/api/temp-email/${email}/messages`);
+      setMessages(response.data.data.messages || []);
     } catch (error) {
       console.error('Failed to refresh messages:', error);
-      setError('Failed to refresh messages');
+      setError(error.response?.data?.error || error.response?.data?.message || 'Failed to refresh messages');
     } finally {
       setLoading(false);
     }
@@ -180,6 +180,7 @@ const TempEmail = () => {
       }
     } catch (error) {
       console.error('❌ Failed to refresh messages:', error);
+      setError(error.response?.data?.error || error.response?.data?.message || 'Failed to refresh messages');
       setApiStatus('error');
     }
   };
