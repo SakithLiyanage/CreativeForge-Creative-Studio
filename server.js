@@ -208,10 +208,10 @@ app.get('*', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log('\n🚀 MediaWeb Server Started Successfully!');
-  console.log(`📱 Server running on: ${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}${PORT}`);
-  console.log(`🌐 Frontend URL: ${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}`);
-  console.log(`🔗 API Base URL: ${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}${PORT}/api`);
-  console.log(`🏥 Health Check: ${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}${PORT}/api/health`);
+  console.log(`📱 Server running on: http://localhost:${PORT}`);
+  console.log(`🌐 Frontend URL: http://localhost:3000`);
+  console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+  console.log(`🏥 Health Check: http://localhost:${PORT}/api/health`);
   console.log('─'.repeat(50));
 });
 
