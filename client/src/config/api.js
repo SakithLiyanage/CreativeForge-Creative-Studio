@@ -2,11 +2,12 @@ import axios from 'axios';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}',
+  baseURL: process.env.REACT_APP_API_URL || 'https://creative-forge-creative-studio-backend-h6q5dxs3u.vercel.app',
   timeout: 30000, // 30 seconds
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
+  withCredentials: true
 });
 
 // Request interceptor
