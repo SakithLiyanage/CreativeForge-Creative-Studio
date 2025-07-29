@@ -9,16 +9,18 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('📁 Created uploads directory');
+// Create uploads directory if it doesn't exist (only in non-serverless environments)
+if (!process.env.VERCEL) {
+  const uploadsDir = path.join(__dirname, 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('📁 Created uploads directory');
+  }
 }
 
 // Middleware
 app.use(cors({
-  origin: ['${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}', 'http://127.0.0.1:3000'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -27,29 +29,31 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Static file serving for uploaded images and documents
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Static file serving for uploaded images and documents (only in non-serverless environments)
+if (!process.env.VERCEL) {
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Add specific static serving for converted files
-app.use('/uploads/converted', express.static(path.join(__dirname, 'uploads/converted')));
+  // Add specific static serving for converted files
+  app.use('/uploads/converted', express.static(path.join(__dirname, 'uploads/converted')));
 
-// Static file serving for documents with proper headers
-app.use('/uploads/documents', express.static(path.join(__dirname, 'uploads/documents'), {
-  setHeaders: (res, filePath) => {
-    const ext = path.extname(filePath).toLowerCase();
-    switch (ext) {
-      case '.pdf':
-        res.setHeader('Content-Type', 'application/pdf');
-        break;
-      case '.docx':
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        break;
-      case '.txt':
-        res.setHeader('Content-Type', 'text/plain');
-        break;
+  // Static file serving for documents with proper headers
+  app.use('/uploads/documents', express.static(path.join(__dirname, 'uploads/documents'), {
+    setHeaders: (res, filePath) => {
+      const ext = path.extname(filePath).toLowerCase();
+      switch (ext) {
+        case '.pdf':
+          res.setHeader('Content-Type', 'application/pdf');
+          break;
+        case '.docx':
+          res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+          break;
+        case '.txt':
+          res.setHeader('Content-Type', 'text/plain');
+          break;
+      }
     }
-  }
-}));
+  }));
+}
 
 // Test endpoint with better diagnostics
 app.get('/api/test', (req, res) => {
@@ -162,8 +166,10 @@ app.get('/s/:shortCode', async (req, res) => {
   }
 });
 
-// Static file serving for uploaded images and documents
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Static file serving for uploaded images and documents (only in non-serverless environments)
+if (!process.env.VERCEL) {
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+}
 
 // Debug route to check all registered routes
 app.get('/api/routes', (req, res) => {
@@ -197,23 +203,27 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
-// Serve static files from React build
-app.use(express.static(path.join(__dirname, 'client/build')));
+// Serve static files from React build (only in non-serverless environments)
+if (!process.env.VERCEL) {
+  app.use(express.static(path.join(__dirname, 'client/build')));
 
-// Catch all handler: send back React's index.html file
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-});
+  // Catch all handler: send back React's index.html file
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+  });
+}
 
-// Start server
-app.listen(PORT, () => {
-  console.log('\n🚀 MediaWeb Server Started Successfully!');
-  console.log(`📱 Server running on: http://localhost:${PORT}`);
-  console.log(`🌐 Frontend URL: http://localhost:3000`);
-  console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
-  console.log(`🏥 Health Check: http://localhost:${PORT}/api/health`);
-  console.log('─'.repeat(50));
-});
+// Start server (only in non-serverless environments)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log('\n🚀 MediaWeb Server Started Successfully!');
+    console.log(`📱 Server running on: http://localhost:${PORT}`);
+    console.log(`🌐 Frontend URL: http://localhost:3000`);
+    console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+    console.log(`🏥 Health Check: http://localhost:${PORT}/api/health`);
+    console.log('─'.repeat(50));
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
