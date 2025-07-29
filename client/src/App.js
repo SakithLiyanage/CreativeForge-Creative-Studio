@@ -12,6 +12,7 @@ import ChatBot from './pages/ChatBot';
 import ChatBotWidget from './components/ChatBotWidget';
 import TestConnection from './pages/TestConnection';
 import SimpleTest from './pages/SimpleTest';
+import FeatureTest from './pages/FeatureTest';
 
 function AppContent() {
   const location = useLocation();
@@ -32,6 +33,7 @@ function AppContent() {
           <Route path="/chat" element={<ChatBot />} />
           <Route path="/test" element={<TestConnection />} />
           <Route path="/simple-test" element={<SimpleTest />} />
+          <Route path="/feature-test" element={<FeatureTest />} />
         </Routes>
         <ChatBotWidget position={isDashboard ? "left" : "right"} />
       </main>

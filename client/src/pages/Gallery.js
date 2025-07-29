@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 
 const Gallery = () => {
   const [images, setImages] = useState([]);
@@ -16,7 +16,7 @@ const Gallery = () => {
 
   const fetchImages = async () => {
     try {
-      const response = await axios.get('/api/images');
+      const response = await api.get('/api/images');
       setImages(response.data);
     } catch (error) {
       console.error('Error fetching images:', error);
@@ -40,7 +40,7 @@ const Gallery = () => {
       const blob = await fetch(selectedImage.imageUrl).then(r => r.blob());
       const formData = new FormData();
       formData.append('image', blob, 'image.png');
-      const response = await axios.post('/api/ai/tag-image', formData);
+      const response = await api.post('/api/ai/tag-image', formData);
       setTags(response.data.tags);
     } catch (err) {
       setAiError('Failed to tag image.');

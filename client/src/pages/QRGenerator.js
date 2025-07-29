@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { 
   IoQrCode, 
   IoDownload, 
@@ -58,7 +58,7 @@ const QRGenerator = () => {
     setResult(null);
 
     try {
-      const response = await axios.post('/api/qr/generate', {
+      const response = await api.post('/api/qr/generate', {
         content: getContentForType(),
         type: activeType,
         ...options

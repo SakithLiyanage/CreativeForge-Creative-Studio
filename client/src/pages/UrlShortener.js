@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { 
   IoLink, 
   IoSparkles, 
@@ -35,7 +35,7 @@ const UrlShortener = () => {
 
   const fetchRecentUrls = async () => {
     try {
-      const response = await axios.get('/api/url/my-urls');
+      const response = await api.get('/api/url/my-urls');
       setRecentUrls(response.data.data || []);
     } catch (error) {
       console.error('❌ Failed to fetch URLs:', error);
@@ -53,7 +53,7 @@ const UrlShortener = () => {
     setResult(null);
 
     try {
-      const response = await axios.post('/api/url/shorten', {
+      const response = await api.post('/api/url/shorten', {
         originalUrl,
         customCode: customCode || undefined
       });
@@ -82,7 +82,7 @@ const UrlShortener = () => {
 
   const getAnalytics = async (shortCode) => {
     try {
-      const response = await axios.get(`/api/url/analytics/${shortCode}`);
+      const response = await api.get(`/api/url/analytics/${shortCode}`);
       setAnalytics(response.data.data);
     } catch (error) {
       console.error('❌ Analytics error:', error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { 
   IoSparkles, 
   IoImages, 
@@ -43,10 +43,8 @@ const ImageGenerator = () => {
     
     try {
       console.log('🎨 Sending generation request...');
-      const response = await axios.post('/api/images/generate', { 
+      const response = await api.post('/api/images/generate', { 
         prompt: prompt.trim()
-      }, {
-        timeout: 60000
       });
       
       console.log('✅ Response received:', response.data);
@@ -78,7 +76,7 @@ const ImageGenerator = () => {
       const filename = urlParts[urlParts.length - 1];
       
       // Use fetch to download
-      const response = await fetch(`/api/images/download/${filename}`);
+      const response = await fetch(`${api.defaults.baseURL}/api/images/download/${filename}`);
       const blob = await response.blob();
       
       const url = window.URL.createObjectURL(blob);

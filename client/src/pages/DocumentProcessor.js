@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { 
   IoDocumentText, 
   IoDocuments,
@@ -131,7 +131,7 @@ const DocumentProcessor = () => {
 
       console.log('🎯 Calling endpoint:', endpoint);
 
-      const response = await axios.post(endpoint, formData, {
+      const response = await api.post(endpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -155,7 +155,7 @@ const DocumentProcessor = () => {
     setAiLoading(true);
     setSummary('');
     try {
-      const response = await axios.post('/api/ai/summarize', { text: result.extractedText });
+      const response = await api.post('/api/ai/summarize', { text: result.extractedText });
       setSummary(response.data.summary);
     } catch (err) {
       setSummary('Failed to summarize.');
@@ -169,7 +169,7 @@ const DocumentProcessor = () => {
     setAiLoading(true);
     setTags([]);
     try {
-      const response = await axios.post('/api/ai/tag-document', { text: result.extractedText });
+      const response = await api.post('/api/ai/tag-document', { text: result.extractedText });
       setTags(response.data.tags);
     } catch (err) {
       setTags(['Failed to tag.']);

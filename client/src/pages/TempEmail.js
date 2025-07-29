@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { 
   IoMail, 
   IoRefresh, 
@@ -53,7 +53,7 @@ const TempEmail = () => {
 
     setLoading(true);
     try {
-      const response = await axios.get(`/api/temp-email/messages/${email}`);
+      const response = await api.get(`/api/temp-email/messages/${email}`);
       setMessages(response.data);
     } catch (error) {
       console.error('Failed to refresh messages:', error);
@@ -123,7 +123,7 @@ const TempEmail = () => {
 
   const fetchDomains = async () => {
     try {
-      const response = await axios.get('/api/temp-email/domains');
+      const response = await api.get('/api/temp-email/domains');
       setDomains(response.data.data || []);
       setSelectedDomain(response.data.data[0] || '');
     } catch (error) {
@@ -137,7 +137,7 @@ const TempEmail = () => {
     setApiStatus('generating');
 
     try {
-      const response = await axios.post('/api/temp-email/generate', {
+      const response = await api.post('/api/temp-email/generate', {
         customUsername,
         domain: selectedDomain
       }, {
@@ -170,7 +170,7 @@ const TempEmail = () => {
       setApiStatus('fetching');
       let endpoint = `/api/temp-email/${email}/messages`;
       // Always use /messages endpoint, remove auto-refresh logic
-      const response = await axios.get(endpoint);
+      const response = await api.get(endpoint);
       setMessages(response.data.data.messages || []);
       setApiStatus('connected');
       
@@ -188,7 +188,7 @@ const TempEmail = () => {
     if (!email) return;
 
     try {
-      await axios.post(`/api/temp-email/${email}/simulate`, {
+      await api.post(`/api/temp-email/${email}/simulate`, {
         from: 'demo@example.com',
         subject: 'Welcome to CreativeForge!',
         body: 'This is a demo email to show how the temporary email system works. Your email is working perfectly!'
@@ -204,7 +204,7 @@ const TempEmail = () => {
     if (!email) return;
 
     try {
-      const response = await axios.post(`/api/temp-email/${email}/simulate-external`);
+      const response = await api.post(`/api/temp-email/${email}/simulate-external`);
       console.log('✅ External email simulated:', response.data);
       refreshMessages();
     } catch (error) {

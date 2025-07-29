@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { 
   IoSwapHorizontal,
   IoImages,
@@ -109,7 +109,7 @@ const MediaConverter = () => {
       const endpoint = `/api/convert/${activeType}`;
       console.log('🎯 Calling endpoint:', endpoint);
 
-      const response = await axios.post(endpoint, formData, {
+      const response = await api.post(endpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
