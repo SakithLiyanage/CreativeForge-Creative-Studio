@@ -1,3 +1,8 @@
+const express = require('express');
+const mongoose = require('mongoose');
+
+const router = express.Router();
+
 // Video model with fallback
 let Video;
 try {
@@ -6,6 +11,9 @@ try {
   console.log('📝 Video model not found, using memory storage');
   Video = null;
 }
+
+// Memory storage fallback
+const videosMemory = [];
 
 // Get all videos with error handling
 router.get('/', async (req, res) => {
@@ -24,3 +32,5 @@ router.get('/', async (req, res) => {
     res.status(200).json([]); // Return empty array instead of error
   }
 });
+
+module.exports = router;

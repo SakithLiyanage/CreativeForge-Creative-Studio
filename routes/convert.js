@@ -7,15 +7,15 @@ const CloudConvert = require('cloudconvert');
 
 const router = express.Router();
 
-// Create converted files directory
+// Create converted files directory (only in non-serverless environments)
 const convertedDir = path.join(__dirname, '../uploads/converted');
-if (!fs.existsSync(convertedDir)) {
+if (!process.env.VERCEL && !fs.existsSync(convertedDir)) {
   fs.mkdirSync(convertedDir, { recursive: true });
   console.log('📁 Created converted files directory:', convertedDir);
 }
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
+// Configure multer for file uploads (with Vercel compatibility)
+const storage = process.env.VERCEL ? multer.memoryStorage() : multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, convertedDir);
   },
@@ -42,7 +42,7 @@ const createUploadMiddleware = () => {
     
     // Create multer instance for this request
     const uploadInstance = multer({
-      storage,
+      storage: process.env.VERCEL ? multer.memoryStorage() : storage,
       limits: { 
         fileSize: 100 * 1024 * 1024, // 100MB limit
         files: 10

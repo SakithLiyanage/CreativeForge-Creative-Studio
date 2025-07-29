@@ -6,9 +6,9 @@ const mongoose = require('mongoose');
 
 const router = express.Router();
 
-// Create uploads directory
+// Create uploads directory (only in non-serverless environments)
 const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
+if (!process.env.VERCEL && !fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
@@ -36,12 +36,18 @@ const imageServices = {
         }
       });
       
-      const filename = `pollinations_${Date.now()}.png`;
-      const filepath = path.join(uploadsDir, filename);
-      fs.writeFileSync(filepath, response.data);
-      
-      console.log('✅ Pollinations image saved locally');
-      return `/uploads/${filename}`;
+      // Handle file saving based on environment
+      if (!process.env.VERCEL) {
+        const filename = `pollinations_${Date.now()}.png`;
+        const filepath = path.join(uploadsDir, filename);
+        fs.writeFileSync(filepath, response.data);
+        console.log('✅ Pollinations image saved locally');
+        return `/uploads/${filename}`;
+      } else {
+        // In Vercel, return the direct URL
+        console.log('✅ Pollinations image generated (Vercel environment)');
+        return imageUrl;
+      }
     } catch (error) {
       throw new Error(`Pollinations failed: ${error.message}`);
     }
@@ -89,12 +95,19 @@ const imageServices = {
           
           // Download and save
           const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-          const filename = `stablehorde_${Date.now()}.png`;
-          const filepath = path.join(uploadsDir, filename);
-          fs.writeFileSync(filepath, imageResponse.data);
           
-          console.log('✅ Stable Horde image saved');
-          return `/uploads/${filename}`;
+          // Handle file saving based on environment
+          if (!process.env.VERCEL) {
+            const filename = `stablehorde_${Date.now()}.png`;
+            const filepath = path.join(uploadsDir, filename);
+            fs.writeFileSync(filepath, imageResponse.data);
+            console.log('✅ Stable Horde image saved');
+            return `/uploads/${filename}`;
+          } else {
+            // In Vercel, return the direct URL
+            console.log('✅ Stable Horde image generated (Vercel environment)');
+            return imageUrl;
+          }
         }
         attempts++;
       }
@@ -122,12 +135,18 @@ const imageServices = {
         const base64Image = response.data.images[0];
         const imageBuffer = Buffer.from(base64Image, 'base64');
         
-        const filename = `dallemini_${Date.now()}.png`;
-        const filepath = path.join(uploadsDir, filename);
-        fs.writeFileSync(filepath, imageBuffer);
-        
-        console.log('✅ DALL-E Mini image saved');
-        return `/uploads/${filename}`;
+        // Handle file saving based on environment
+        if (!process.env.VERCEL) {
+          const filename = `dallemini_${Date.now()}.png`;
+          const filepath = path.join(uploadsDir, filename);
+          fs.writeFileSync(filepath, imageBuffer);
+          console.log('✅ DALL-E Mini image saved');
+          return `/uploads/${filename}`;
+        } else {
+          console.log('✅ DALL-E Mini image generated (Vercel environment)');
+          // Return base64 data for Vercel
+          return `data:image/png;base64,${base64Image}`;
+        }
       }
       throw new Error('No images returned');
     } catch (error) {

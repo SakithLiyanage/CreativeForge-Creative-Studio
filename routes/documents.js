@@ -10,18 +10,18 @@ const { Document, Packer, Paragraph, TextRun } = require('docx');
 
 const router = express.Router();
 
-// Create documents directory if it doesn't exist
+// Create documents directory if it doesn't exist (only in non-serverless environments)
 const documentsDir = path.join(__dirname, '../uploads/documents');
-if (!fs.existsSync(documentsDir)) {
+if (!process.env.VERCEL && !fs.existsSync(documentsDir)) {
   fs.mkdirSync(documentsDir, { recursive: true });
   console.log('📁 Created documents directory:', documentsDir);
 }
 
-// Configure multer for document uploads
-const storage = multer.diskStorage({
+// Configure multer for document uploads (with Vercel compatibility)
+const storage = process.env.VERCEL ? multer.memoryStorage() : multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, '../uploads/documents');
-    if (!fs.existsSync(uploadDir)) {
+    if (!process.env.VERCEL && !fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
     cb(null, uploadDir);
@@ -39,7 +39,7 @@ const createUploadMiddleware = () => {
     console.log('📋 Content-Type:', req.headers['content-type']);
     // Create multer instance for this request
     const uploadInstance = multer({
-      storage,
+      storage: process.env.VERCEL ? multer.memoryStorage() : storage,
       limits: {
         fileSize: 50 * 1024 * 1024, // 50MB limit
         files: 10

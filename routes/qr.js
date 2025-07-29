@@ -5,9 +5,9 @@ const path = require('path');
 
 const router = express.Router();
 
-// Create QR codes directory
+// Create QR codes directory (only in non-serverless environments)
 const qrDir = path.join(__dirname, '../uploads/qr-codes');
-if (!fs.existsSync(qrDir)) {
+if (!process.env.VERCEL && !fs.existsSync(qrDir)) {
   fs.mkdirSync(qrDir, { recursive: true });
   console.log('📁 Created QR codes directory:', qrDir);
 }
@@ -83,24 +83,33 @@ router.post('/generate', async (req, res) => {
     // Generate QR code
     const qrCodeDataURL = await QRCode.toDataURL(qrContent, options);
     
-    // Save to file
-    const filename = `qr-${Date.now()}.${format}`;
-    const filepath = path.join(qrDir, filename);
+    // Handle file saving based on environment
+    let filename = null;
+    let fileSize = null;
+    let downloadUrl = null;
     
-    // Convert data URL to buffer and save
-    const base64Data = qrCodeDataURL.replace(/^data:image\/png;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
-    fs.writeFileSync(filepath, buffer);
-
-    const stats = fs.statSync(filepath);
+    if (!process.env.VERCEL) {
+      // Save to file in non-serverless environments
+      filename = `qr-${Date.now()}.${format}`;
+      const filepath = path.join(qrDir, filename);
+      
+      // Convert data URL to buffer and save
+      const base64Data = qrCodeDataURL.replace(/^data:image\/png;base64,/, '');
+      const buffer = Buffer.from(base64Data, 'base64');
+      fs.writeFileSync(filepath, buffer);
+      
+      const stats = fs.statSync(filepath);
+      fileSize = stats.size;
+      downloadUrl = `/api/qr/download/${filename}`;
+    }
 
     res.json({
       success: true,
       message: 'QR Code generated successfully',
       qrCode: qrCodeDataURL,
-      downloadUrl: `/api/qr/download/${filename}`,
+      downloadUrl,
       filename,
-      fileSize: stats.size,
+      fileSize,
       content: qrContent,
       type,
       options: {
@@ -152,19 +161,27 @@ router.post('/batch', async (req, res) => {
 
         const qrCodeDataURL = await QRCode.toDataURL(item.content, qrOptions);
         
-        const filename = `batch-qr-${i + 1}-${Date.now()}.png`;
-        const filepath = path.join(qrDir, filename);
+        // Handle file saving based on environment
+        let filename = null;
+        let downloadUrl = null;
         
-        const base64Data = qrCodeDataURL.replace(/^data:image\/png;base64,/, '');
-        const buffer = Buffer.from(base64Data, 'base64');
-        fs.writeFileSync(filepath, buffer);
+        if (!process.env.VERCEL) {
+          filename = `batch-qr-${i + 1}-${Date.now()}.png`;
+          const filepath = path.join(qrDir, filename);
+          
+          const base64Data = qrCodeDataURL.replace(/^data:image\/png;base64,/, '');
+          const buffer = Buffer.from(base64Data, 'base64');
+          fs.writeFileSync(filepath, buffer);
+          
+          downloadUrl = `/api/qr/download/${filename}`;
+        }
 
         results.push({
           index: i,
           content: item.content,
           label: item.label || `QR Code ${i + 1}`,
           qrCode: qrCodeDataURL,
-          downloadUrl: `/api/qr/download/${filename}`,
+          downloadUrl,
           filename
         });
 
