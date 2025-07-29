@@ -65,7 +65,7 @@ const UrlShortener = () => {
 
     } catch (error) {
       console.error('❌ URL shortening error:', error);
-      setError(error.response?.data?.error || 'Failed to shorten URL');
+      setError(error.response?.data?.error || error.response?.data?.message || 'Failed to shorten URL');
     } finally {
       setLoading(false);
     }

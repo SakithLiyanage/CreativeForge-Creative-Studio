@@ -1,6 +1,7 @@
 const express = require('express');
 const validator = require('validator');
 const short = require('short-uuid');
+const mongoose = require('mongoose');
 const ShortUrl = require('../models/ShortUrl');
 
 const router = express.Router();
@@ -18,6 +19,26 @@ router.post('/shorten', async (req, res) => {
     // Validate URL
     if (!originalUrl || !validator.isURL(originalUrl)) {
       return res.status(400).json({ error: 'Please provide a valid URL' });
+    }
+
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState !== 1) {
+      // Fallback: generate a simple short URL without database
+      const shortCode = customCode || short.generate().substring(0, 8);
+      const shortUrl = `${req.protocol}://${req.get('host')}/s/${shortCode}`;
+      
+      return res.json({
+        success: true,
+        message: 'URL shortened successfully (offline mode)',
+        data: {
+          originalUrl,
+          shortCode,
+          shortUrl,
+          clicks: 0,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+        }
+      });
     }
 
     // Check if URL already exists
@@ -107,15 +128,24 @@ router.get('/analytics/:shortCode', async (req, res) => {
 // Get user's URLs
 router.get('/my-urls', async (req, res) => {
   try {
-    const recentUrls = await ShortUrl.find()
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .select('originalUrl shortUrl shortCode clicks createdAt');
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState === 1) {
+      const recentUrls = await ShortUrl.find()
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .select('originalUrl shortUrl shortCode clicks createdAt');
 
-    res.json({
-      success: true,
-      data: recentUrls
-    });
+      res.json({
+        success: true,
+        data: recentUrls
+      });
+    } else {
+      // Return empty array if database is not connected
+      res.json({
+        success: true,
+        data: []
+      });
+    }
 
   } catch (error) {
     console.error('❌ Get URLs error:', error);

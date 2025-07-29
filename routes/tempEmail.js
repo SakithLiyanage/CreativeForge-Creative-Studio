@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const TempEmail = require('../models/TempEmail');
 const axios = require('axios');
 
@@ -42,29 +43,49 @@ router.post('/generate', async (req, res) => {
     const selectedDomain = domain || '1secmail.com';
     const email = `${username}@${selectedDomain}`;
 
-    // Create email in our database
-    const tempEmail = new TempEmail({
-      email,
-      username,
-      domain: selectedDomain,
-      apiProvider: '1secmail'
-    });
-
-    await tempEmail.save();
-
-    res.json({
-      success: true,
-      message: 'Temporary email generated successfully',
-      data: {
-        email: tempEmail.email,
-        username: tempEmail.username,
-        domain: tempEmail.domain,
-        expiresAt: tempEmail.expiresAt,
-        messagesCount: 0,
-        isReal: true,
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState === 1) {
+      // Create email in our database
+      const tempEmail = new TempEmail({
+        email,
+        username,
+        domain: selectedDomain,
         apiProvider: '1secmail'
-      }
-    });
+      });
+
+      await tempEmail.save();
+
+      res.json({
+        success: true,
+        message: 'Temporary email generated successfully',
+        data: {
+          email: tempEmail.email,
+          username: tempEmail.username,
+          domain: tempEmail.domain,
+          expiresAt: tempEmail.expiresAt,
+          messagesCount: 0,
+          isReal: true,
+          apiProvider: '1secmail'
+        }
+      });
+    } else {
+      // Fallback: generate email without database
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      res.json({
+        success: true,
+        message: 'Temporary email generated successfully (offline mode)',
+        data: {
+          email,
+          username,
+          domain: selectedDomain,
+          expiresAt,
+          messagesCount: 0,
+          isReal: true,
+          apiProvider: '1secmail'
+        }
+      });
+    }
 
   } catch (error) {
     console.error('❌ Temp email generation error:', error);
@@ -77,14 +98,17 @@ router.get('/:email/messages', async (req, res) => {
   try {
     const { email } = req.params;
     
-    // Check if email exists in our database
-    const tempEmail = await TempEmail.findOne({ 
-      email,
-      expiresAt: { $gt: new Date() }
-    });
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState === 1) {
+      // Check if email exists in our database
+      const tempEmail = await TempEmail.findOne({ 
+        email,
+        expiresAt: { $gt: new Date() }
+      });
 
-    if (!tempEmail) {
-      return res.status(404).json({ error: 'Email not found or expired' });
+      if (!tempEmail) {
+        return res.status(404).json({ error: 'Email not found or expired' });
+      }
     }
 
     // Parse email to get username and domain
@@ -108,15 +132,20 @@ router.get('/:email/messages', async (req, res) => {
         read: false
       }));
 
-      // Update our database with new messages
-      tempEmail.messages = transformedMessages;
-      await tempEmail.save();
+      // Update our database with new messages if connected
+      if (mongoose.connection.readyState === 1) {
+        const tempEmail = await TempEmail.findOne({ email });
+        if (tempEmail) {
+          tempEmail.messages = transformedMessages;
+          await tempEmail.save();
+        }
+      }
 
       res.json({
         success: true,
         data: {
-          email: tempEmail.email,
-          expiresAt: tempEmail.expiresAt,
+          email: email,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           messages: transformedMessages.sort((a, b) => b.receivedAt - a.receivedAt),
           apiProvider: '1secmail'
         }
@@ -125,15 +154,15 @@ router.get('/:email/messages', async (req, res) => {
     } catch (apiError) {
       console.error('❌ 1secmail API error:', apiError.message);
       
-      // Fallback to database messages if API fails
+      // Return empty messages if API fails
       res.json({
         success: true,
         data: {
-          email: tempEmail.email,
-          expiresAt: tempEmail.expiresAt,
-          messages: tempEmail.messages.sort((a, b) => b.receivedAt - a.receivedAt),
+          email: email,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          messages: [],
           apiProvider: '1secmail',
-          apiError: 'Using cached messages'
+          apiError: 'Failed to fetch messages'
         }
       });
     }

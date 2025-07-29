@@ -61,7 +61,7 @@ const ImageGenerator = () => {
       if (error.code === 'ECONNABORTED') {
         setError('Generation timed out. The AI service might be busy. Please try again.');
       } else {
-        setError(error.response?.data?.message || 'Failed to generate image. Please try again.');
+        setError(error.response?.data?.error || error.response?.data?.message || 'Failed to generate image. Please try again.');
       }
     } finally {
       setLoading(false);

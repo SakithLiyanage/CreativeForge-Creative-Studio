@@ -156,7 +156,7 @@ const TempEmail = () => {
 
     } catch (error) {
       console.error('❌ Email generation error:', error);
-      setError(error.response?.data?.error || 'Failed to generate email');
+      setError(error.response?.data?.error || error.response?.data?.message || 'Failed to generate email');
       setApiStatus('error');
     } finally {
       setLoading(false);

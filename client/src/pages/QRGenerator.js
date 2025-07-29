@@ -70,7 +70,7 @@ const QRGenerator = () => {
 
     } catch (error) {
       console.error('❌ QR generation error:', error);
-      setError(error.response?.data?.message || 'Failed to generate QR code');
+      setError(error.response?.data?.error || error.response?.data?.message || 'Failed to generate QR code');
     } finally {
       setLoading(false);
     }
