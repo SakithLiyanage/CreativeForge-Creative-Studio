@@ -14,15 +14,6 @@ if (!process.env.VERCEL && !fs.existsSync(convertedDir)) {
   console.log('📁 Created converted files directory:', convertedDir);
 }
 
-// For Vercel, create a temporary directory
-if (process.env.VERCEL) {
-  const tempDir = path.join(__dirname, '../temp');
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir, { recursive: true });
-    console.log('📁 Created temp directory for Vercel:', tempDir);
-  }
-}
-
 // Configure multer for file uploads (with Vercel compatibility)
 const storage = process.env.VERCEL ? multer.memoryStorage() : multer.diskStorage({
   destination: (req, file, cb) => {
@@ -184,7 +175,6 @@ router.post('/image', robustUpload, async (req, res) => {
   try {
     console.log('🖼️ Image conversion request received');
     console.log('Files received:', req.files?.length || 0);
-    console.log('Request body:', req.body);
     
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded for conversion' });
@@ -196,31 +186,11 @@ router.post('/image', robustUpload, async (req, res) => {
     for (const file of req.files) {
       try {
         console.log(`🔄 Converting ${file.originalname} to ${format}`);
-        console.log('📁 File details:', {
-          path: file.path,
-          size: file.size,
-          mimetype: file.mimetype,
-          exists: fs.existsSync(file.path)
-        });
         
         const outputFilename = `converted-${Date.now()}-${path.basename(file.originalname, path.extname(file.originalname))}.${format}`;
-        const outputPath = process.env.VERCEL 
-          ? path.join(__dirname, '../temp', outputFilename)
-          : path.join(convertedDir, outputFilename);
-        
-        console.log('📁 Output path:', outputPath);
+        const outputPath = path.join(convertedDir, outputFilename);
 
-        // Handle Vercel environment (memory storage)
-        let sharpInstance;
-        if (process.env.VERCEL) {
-          // For Vercel, use buffer directly
-          console.log('🌍 Using Vercel environment for image processing');
-          const buffer = fs.readFileSync(file.path);
-          sharpInstance = sharp(buffer);
-        } else {
-          console.log('🌍 Using local environment for image processing');
-          sharpInstance = sharp(file.path);
-        }
+        let sharpInstance = sharp(file.path);
 
         // Apply resize if specified
         if (width || height) {
@@ -231,23 +201,18 @@ router.post('/image', robustUpload, async (req, res) => {
         }
 
         // Convert based on format
-        console.log(`🔄 Converting to format: ${format.toLowerCase()}`);
         switch (format.toLowerCase()) {
           case 'jpeg':
           case 'jpg':
-            console.log('🔄 Using JPEG conversion');
             await sharpInstance.jpeg({ quality: parseInt(quality) }).toFile(outputPath);
             break;
           case 'png':
-            console.log('🔄 Using PNG conversion');
             await sharpInstance.png({ compressionLevel: Math.round((100 - quality) / 10) }).toFile(outputPath);
             break;
           case 'webp':
-            console.log('🔄 Using WebP conversion');
             await sharpInstance.webp({ quality: parseInt(quality) }).toFile(outputPath);
             break;
           default:
-            console.log(`🔄 Using default format conversion: ${format}`);
             await sharpInstance.toFormat(format).toFile(outputPath);
         }
 
@@ -264,9 +229,6 @@ router.post('/image', robustUpload, async (req, res) => {
           dimensions: `${metadata.width}x${metadata.height}`,
           success: true
         });
-
-        console.log(`✅ Successfully converted ${file.originalname} to ${outputFilename}`);
-        console.log(`📊 Output file size: ${stats.size} bytes`);
 
         // Clean up input file
         if (fs.existsSync(file.path)) {
@@ -500,13 +462,10 @@ router.post('/audio', robustUpload, async (req, res) => {
 router.get('/download/:filename', (req, res) => {
   try {
     const filename = req.params.filename;
-    const filepath = process.env.VERCEL 
-      ? path.join(__dirname, '../temp', filename)
-      : path.join(convertedDir, filename);
+    const filepath = path.join(convertedDir, filename);
     
     console.log('Download requested for:', filename);
     console.log('Looking for file at:', filepath);
-    console.log('Environment:', process.env.VERCEL ? 'Vercel' : 'Local');
     
     // List directory contents for debugging
     try {
@@ -612,19 +571,6 @@ router.get('/files', (req, res) => {
       message: error.message
     });
   }
-});
-
-// Health check endpoint
-router.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Convert route is working!',
-    endpoints: {
-      image: 'POST /api/convert/image',
-      video: 'POST /api/convert/video',
-      audio: 'POST /api/convert/audio'
-    }
-  });
 });
 
 module.exports = router;

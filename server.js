@@ -20,10 +20,10 @@ if (!process.env.VERCEL) {
 
 // Middleware
 app.use(cors({
-  origin: ['https://creative-forge-creative-studio.vercel.app', 'http://localhost:3000', 'https://creative-forge-creative-studio-front.vercel.app'],
+  origin: true, // Allow all origins for now
   credentials: false,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json({ limit: '50mb' }));
@@ -115,61 +115,54 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes with error handling
-const loadRoutes = () => {
-  const routeResults = [];
+try {
+  console.log('🔄 Loading test route...');
+  app.use('/api/test-route', require('./routes/test'));
+  console.log('✅ Test route loaded');
   
-  const loadRoute = (name, path) => {
-    try {
-      console.log(`🔄 Loading ${name} route...`);
-      const route = require(path);
-      app.use(`/api/${name}`, route);
-      console.log(`✅ ${name} route loaded`);
-      routeResults.push({ name, success: true });
-      return true;
-    } catch (error) {
-      console.error(`❌ Failed to load ${name} route:`, error.message);
-      routeResults.push({ name, success: false, error: error.message });
-      return false;
-    }
-  };
-
-  // Load routes individually to prevent one failure from breaking all
-  loadRoute('test-route', './routes/test');
-  loadRoute('images', './routes/images');
-  loadRoute('videos', './routes/videos');
-  loadRoute('convert', './routes/convert');
-  loadRoute('analytics', './routes/analytics');
-  loadRoute('documents', './routes/documents');
-  loadRoute('qr', './routes/qr');
-  loadRoute('url', './routes/urlShortener');
-  loadRoute('temp-email', './routes/tempEmail');
-
-  const successfulRoutes = routeResults.filter(r => r.success);
-  const failedRoutes = routeResults.filter(r => !r.success);
-
-  console.log(`✅ Successfully loaded ${successfulRoutes.length} routes`);
-  if (failedRoutes.length > 0) {
-    console.log(`❌ Failed to load ${failedRoutes.length} routes:`, failedRoutes.map(r => r.name));
-  }
-
-  return successfulRoutes.length > 0; // Return true if at least one route loaded
-};
-
-// Load routes
-const routesLoaded = loadRoutes();
-
-// Fallback for failed route loading
-if (!routesLoaded) {
-  console.error('❌ Route loading failed, using fallback');
+  console.log('🔄 Loading images route...');
+  app.use('/api/images', require('./routes/images'));
+  console.log('✅ Images route loaded');
+  
+  console.log('🔄 Loading videos route...');
+  app.use('/api/videos', require('./routes/videos'));
+  console.log('✅ Videos route loaded');
+  
+  console.log('🔄 Loading convert route...');
+  app.use('/api/convert', require('./routes/convert'));
+  console.log('✅ Convert route loaded');
+  
+  console.log('🔄 Loading analytics route...');
+  app.use('/api/analytics', require('./routes/analytics'));
+  console.log('✅ Analytics route loaded');
+  
+  console.log('🔄 Loading documents route...');
+  app.use('/api/documents', require('./routes/documents'));
+  console.log('✅ Documents route loaded');
+  
+  console.log('🔄 Loading QR route...');
+  app.use('/api/qr', require('./routes/qr'));
+  console.log('✅ QR route loaded');
+  
+  console.log('🔄 Loading URL shortener route...');
+  app.use('/api/url', require('./routes/urlShortener'));
+  console.log('✅ URL shortener route loaded');
+  
+  console.log('🔄 Loading temp email route...');
+  app.use('/api/temp-email', require('./routes/tempEmail'));
+  console.log('✅ Temp email route loaded');
+  
+  console.log('✅ All routes loaded successfully');
+} catch (error) {
+  console.error('❌ Route loading error:', error);
+  
+  // Fallback routes
   app.get('/api/*', (req, res) => {
     res.status(503).json({ 
       error: 'Service temporarily unavailable',
-      message: 'Some features may be loading. Please try again.',
-      path: req.path
+      message: 'Some features may be loading. Please try again.'
     });
   });
-} else {
-  console.log('✅ All routes loaded successfully');
 }
 
 // URL redirect for shortened URLs
@@ -209,54 +202,19 @@ if (!process.env.VERCEL) {
 
 // Debug route to check all registered routes
 app.get('/api/routes', (req, res) => {
-  const routes = [];
-  
-  // Get all registered routes
-  app._router.stack.forEach(middleware => {
-    if (middleware.route) {
-      // Routes registered directly on app
-      const path = middleware.route.path;
-      const methods = Object.keys(middleware.route.methods);
-      methods.forEach(method => {
-        routes.push(`${method.toUpperCase()} ${path}`);
-      });
-    } else if (middleware.name === 'router') {
-      // Router middleware
-      middleware.handle.stack.forEach(handler => {
-        if (handler.route) {
-          const path = handler.route.path;
-          const methods = Object.keys(handler.route.methods);
-          methods.forEach(method => {
-            routes.push(`${method.toUpperCase()} ${middleware.regexp.source.replace(/\\\//g, '/').replace(/^\/\^/, '').replace(/\/\$/, '')}${path}`);
-          });
-        }
-      });
-    }
-  });
-  
-  // Test specific routes
-  const testRoutes = [
-    '/api/documents',
-    '/api/documents/pdf-to-docx',
-    '/api/documents/extract-text',
-    '/api/convert',
-    '/api/convert/image'
-  ];
-  
-  // Check which test routes are actually available
-  const availableTestRoutes = testRoutes.filter(testRoute => {
-    return routes.some(route => route.includes(testRoute.replace('/api/', '')));
-  });
-  
   res.json({
     message: 'Available API routes',
-    routes: routes,
-    routesLoaded: routesLoaded,
-    environment: process.env.VERCEL ? 'Vercel' : 'Local',
-    testRoutes: testRoutes,
-    availableTestRoutes: availableTestRoutes,
-    totalRoutes: routes.length,
-    status: routes.length > 0 ? 'working' : 'no routes loaded'
+    routes: [
+      'GET /api/health',
+      'GET /api/test', 
+      'GET /api/images',
+      'POST /api/images/generate',
+      'DELETE /api/images/:id',
+      'POST /api/convert/image',
+      'POST /api/convert/video',
+      'GET /api/convert/download/:filename',
+      'GET /api/convert/history'
+    ]
   });
 });
 

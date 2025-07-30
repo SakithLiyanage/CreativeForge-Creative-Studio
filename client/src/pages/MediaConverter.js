@@ -173,7 +173,7 @@ const MediaConverter = () => {
       }
       
       // Otherwise, download from local server
-      const response = await fetch(`${api.defaults.baseURL}/api/convert/download/${filename}`);
+      const response = await fetch(`/api/convert/download/${filename}`);
       
       if (!response.ok) {
         throw new Error(`Download failed: ${response.status} ${response.statusText}`);

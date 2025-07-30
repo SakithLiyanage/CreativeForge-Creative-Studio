@@ -1,64 +1,23 @@
 const express = require('express');
+const Image = require('../models/Image');
+const ShortUrl = require('../models/ShortUrl');
+const TempEmail = require('../models/TempEmail');
 const path = require('path');
 const fs = require('fs');
 
 const router = express.Router();
 
-// Health check endpoint
-router.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Analytics route is working!',
-    models: {
-      Image: !!Image,
-      ShortUrl: !!ShortUrl,
-      TempEmail: !!TempEmail
-    }
-  });
-});
-
-// Try to load models with fallback
-let Image, ShortUrl, TempEmail;
-try {
-  Image = require('../models/Image');
-} catch (error) {
-  console.log('📝 Image model not found');
-  Image = null;
-}
-
-try {
-  ShortUrl = require('../models/ShortUrl');
-} catch (error) {
-  console.log('📝 ShortUrl model not found');
-  ShortUrl = null;
-}
-
-try {
-  TempEmail = require('../models/TempEmail');
-} catch (error) {
-  console.log('📝 TempEmail model not found');
-  TempEmail = null;
-}
-
 // Get real analytics data
 router.get('/stats', async (req, res) => {
   try {
     // Get image generation stats
-    let totalImages = 0, imagesThisMonth = 0, imagesThisWeek = 0;
-    
-    if (Image) {
-      try {
-        totalImages = await Image.countDocuments();
-        imagesThisMonth = await Image.countDocuments({
-          createdAt: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
-        });
-        imagesThisWeek = await Image.countDocuments({
-          createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-        });
-      } catch (error) {
-        console.log('📝 Image stats not available:', error.message);
-      }
-    }
+    const totalImages = await Image.countDocuments();
+    const imagesThisMonth = await Image.countDocuments({
+      createdAt: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
+    });
+    const imagesThisWeek = await Image.countDocuments({
+      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+    });
 
     // Get conversion stats from uploads directory
     const uploadsPath = path.join(__dirname, '../uploads');
@@ -110,37 +69,16 @@ router.get('/stats', async (req, res) => {
     }
 
     // Count short URLs
-    let totalShortUrls = 0;
-    if (ShortUrl) {
-      try {
-        totalShortUrls = await ShortUrl.countDocuments();
-      } catch (error) {
-        console.log('📝 ShortUrl stats not available:', error.message);
-      }
-    }
+    const totalShortUrls = await ShortUrl.countDocuments();
 
     // Count temp emails
-    let totalTempEmails = 0;
-    if (TempEmail) {
-      try {
-        totalTempEmails = await TempEmail.countDocuments();
-      } catch (error) {
-        console.log('📝 TempEmail stats not available:', error.message);
-      }
-    }
+    const totalTempEmails = await TempEmail.countDocuments();
 
     // Get recent activity
-    let recentImages = [];
-    if (Image) {
-      try {
-        recentImages = await Image.find()
-          .sort({ createdAt: -1 })
-          .limit(10)
-          .select('prompt createdAt');
-      } catch (error) {
-        console.log('📝 Recent images not available:', error.message);
-      }
-    }
+    const recentImages = await Image.find()
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select('prompt createdAt');
 
     res.json({
       success: true,
@@ -168,13 +106,6 @@ router.get('/stats', async (req, res) => {
 // Get usage over time
 router.get('/usage', async (req, res) => {
   try {
-    if (!Image) {
-      return res.json({
-        success: true,
-        dailyStats: []
-      });
-    }
-
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     
     const dailyStats = await Image.aggregate([

@@ -3,16 +3,6 @@ const mongoose = require('mongoose');
 
 const router = express.Router();
 
-// Health check endpoint
-router.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Videos route is working!',
-    hasModel: !!Video,
-    hasConnection: mongoose.connection.readyState === 1
-  });
-});
-
 // Video model with fallback
 let Video;
 try {

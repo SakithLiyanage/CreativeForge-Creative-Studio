@@ -6,15 +6,6 @@ const mongoose = require('mongoose');
 
 const router = express.Router();
 
-// Health check endpoint
-router.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Images route is working!',
-    services: Object.keys(imageServices)
-  });
-});
-
 // Create uploads directory (only in non-serverless environments)
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!process.env.VERCEL && !fs.existsSync(uploadsDir)) {
