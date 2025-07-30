@@ -20,10 +20,10 @@ if (!process.env.VERCEL) {
 
 // Middleware
 app.use(cors({
-  origin: true, // Allow all origins for now
+  origin: ['https://creative-forge-creative-studio.vercel.app', 'http://localhost:3000', 'https://creative-forge-creative-studio-front.vercel.app'],
   credentials: false,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json({ limit: '50mb' }));
@@ -115,52 +115,62 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes with error handling
-try {
-  console.log('🔄 Loading test route...');
-  app.use('/api/test-route', require('./routes/test'));
-  console.log('✅ Test route loaded');
-  
-  console.log('🔄 Loading images route...');
-  app.use('/api/images', require('./routes/images'));
-  console.log('✅ Images route loaded');
-  
-  console.log('🔄 Loading videos route...');
-  app.use('/api/videos', require('./routes/videos'));
-  console.log('✅ Videos route loaded');
-  
-  console.log('🔄 Loading convert route...');
-  app.use('/api/convert', require('./routes/convert'));
-  console.log('✅ Convert route loaded');
-  
-  console.log('🔄 Loading analytics route...');
-  app.use('/api/analytics', require('./routes/analytics'));
-  console.log('✅ Analytics route loaded');
-  
-  console.log('🔄 Loading documents route...');
-  app.use('/api/documents', require('./routes/documents'));
-  console.log('✅ Documents route loaded');
-  
-  console.log('🔄 Loading QR route...');
-  app.use('/api/qr', require('./routes/qr'));
-  console.log('✅ QR route loaded');
-  
-  console.log('🔄 Loading URL shortener route...');
-  app.use('/api/url', require('./routes/urlShortener'));
-  console.log('✅ URL shortener route loaded');
-  
-  console.log('🔄 Loading temp email route...');
-  app.use('/api/temp-email', require('./routes/tempEmail'));
-  console.log('✅ Temp email route loaded');
-  
-  console.log('✅ All routes loaded successfully');
-} catch (error) {
-  console.error('❌ Route loading error:', error);
-  
-  // Fallback routes
+const loadRoutes = () => {
+  try {
+    console.log('🔄 Loading test route...');
+    app.use('/api/test-route', require('./routes/test'));
+    console.log('✅ Test route loaded');
+    
+    console.log('🔄 Loading images route...');
+    app.use('/api/images', require('./routes/images'));
+    console.log('✅ Images route loaded');
+    
+    console.log('🔄 Loading videos route...');
+    app.use('/api/videos', require('./routes/videos'));
+    console.log('✅ Videos route loaded');
+    
+    console.log('🔄 Loading convert route...');
+    app.use('/api/convert', require('./routes/convert'));
+    console.log('✅ Convert route loaded');
+    
+    console.log('🔄 Loading analytics route...');
+    app.use('/api/analytics', require('./routes/analytics'));
+    console.log('✅ Analytics route loaded');
+    
+    console.log('🔄 Loading documents route...');
+    app.use('/api/documents', require('./routes/documents'));
+    console.log('✅ Documents route loaded');
+    
+    console.log('🔄 Loading QR route...');
+    app.use('/api/qr', require('./routes/qr'));
+    console.log('✅ QR route loaded');
+    
+    console.log('🔄 Loading URL shortener route...');
+    app.use('/api/url', require('./routes/urlShortener'));
+    console.log('✅ URL shortener route loaded');
+    
+    console.log('🔄 Loading temp email route...');
+    app.use('/api/temp-email', require('./routes/tempEmail'));
+    console.log('✅ Temp email route loaded');
+    
+    console.log('✅ All routes loaded successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Route loading error:', error);
+    return false;
+  }
+};
+
+// Load routes
+const routesLoaded = loadRoutes();
+
+// Fallback for failed route loading
+if (!routesLoaded) {
   app.get('/api/*', (req, res) => {
     res.status(503).json({ 
       error: 'Service temporarily unavailable',
-      message: 'Some features may be loading. Please try again.'
+      message: 'Some features may be loading. Please try again.',
+      path: req.path
     });
   });
 }
@@ -202,19 +212,36 @@ if (!process.env.VERCEL) {
 
 // Debug route to check all registered routes
 app.get('/api/routes', (req, res) => {
+  const routes = [];
+  
+  // Get all registered routes
+  app._router.stack.forEach(middleware => {
+    if (middleware.route) {
+      // Routes registered directly on app
+      const path = middleware.route.path;
+      const methods = Object.keys(middleware.route.methods);
+      methods.forEach(method => {
+        routes.push(`${method.toUpperCase()} ${path}`);
+      });
+    } else if (middleware.name === 'router') {
+      // Router middleware
+      middleware.handle.stack.forEach(handler => {
+        if (handler.route) {
+          const path = handler.route.path;
+          const methods = Object.keys(handler.route.methods);
+          methods.forEach(method => {
+            routes.push(`${method.toUpperCase()} ${middleware.regexp.source.replace(/\\\//g, '/').replace(/^\/\^/, '').replace(/\/\$/, '')}${path}`);
+          });
+        }
+      });
+    }
+  });
+  
   res.json({
     message: 'Available API routes',
-    routes: [
-      'GET /api/health',
-      'GET /api/test', 
-      'GET /api/images',
-      'POST /api/images/generate',
-      'DELETE /api/images/:id',
-      'POST /api/convert/image',
-      'POST /api/convert/video',
-      'GET /api/convert/download/:filename',
-      'GET /api/convert/history'
-    ]
+    routes: routes,
+    routesLoaded: routesLoaded,
+    environment: process.env.VERCEL ? 'Vercel' : 'Local'
   });
 });
 
