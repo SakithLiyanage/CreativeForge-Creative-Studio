@@ -145,6 +145,50 @@ const TestFeatures = () => {
     }
   };
 
+  const testDocumentExtract = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      // Create a simple test text file
+      const testContent = 'This is a test document for text extraction.';
+      const testFile = new File([testContent], 'test.txt', { type: 'text/plain' });
+      const formData = new FormData();
+      formData.append('files', testFile);
+
+      console.log('🧪 Testing document text extraction...');
+      const response = await api.post('/api/documents/extract-text', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+
+      console.log('✅ Document extraction test response:', response.data);
+      setResults(prev => ({
+        ...prev,
+        'Document Extraction Test': {
+          success: true,
+          data: response.data,
+          status: response.status
+        }
+      }));
+
+      setLoading(false);
+
+    } catch (error) {
+      console.error('❌ Document extraction test failed:', error);
+      setResults(prev => ({
+        ...prev,
+        'Document Extraction Test': {
+          success: false,
+          error: error.response?.data?.error || error.response?.data?.message || error.message,
+          status: error.response?.status
+        }
+      }));
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 content-with-navbar">
       <div className="max-w-4xl mx-auto px-6 py-16">
@@ -190,6 +234,15 @@ const TestFeatures = () => {
               >
                 <IoDownload className={loading ? 'animate-spin' : ''} />
                 <span>Test Document Processing</span>
+              </button>
+
+              <button
+                onClick={testDocumentExtract}
+                disabled={loading}
+                className="btn-secondary flex items-center space-x-2"
+              >
+                <IoDownload className={loading ? 'animate-spin' : ''} />
+                <span>Test Text Extraction</span>
               </button>
             </div>
           </div>
@@ -255,8 +308,9 @@ const TestFeatures = () => {
             <p>1. Click "Test Endpoints" to verify backend routes are working</p>
             <p>2. Click "Test Image Conversion" to verify file upload and conversion</p>
             <p>3. Click "Test Document Processing" to verify document functionality</p>
-            <p>4. Check the results below for any errors</p>
-            <p>5. If all tests pass, the features should work in the main application</p>
+            <p>4. Click "Test Text Extraction" to verify text extraction</p>
+            <p>5. Check the results below for any errors</p>
+            <p>6. If all tests pass, the features should work in the main application</p>
           </div>
         </div>
 

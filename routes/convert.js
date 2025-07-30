@@ -14,6 +14,15 @@ if (!process.env.VERCEL && !fs.existsSync(convertedDir)) {
   console.log('📁 Created converted files directory:', convertedDir);
 }
 
+// For Vercel, create a temporary directory
+if (process.env.VERCEL) {
+  const tempDir = path.join(__dirname, '../temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+    console.log('📁 Created temp directory for Vercel:', tempDir);
+  }
+}
+
 // Configure multer for file uploads (with Vercel compatibility)
 const storage = process.env.VERCEL ? multer.memoryStorage() : multer.diskStorage({
   destination: (req, file, cb) => {
@@ -195,15 +204,21 @@ router.post('/image', robustUpload, async (req, res) => {
         });
         
         const outputFilename = `converted-${Date.now()}-${path.basename(file.originalname, path.extname(file.originalname))}.${format}`;
-        const outputPath = path.join(convertedDir, outputFilename);
+        const outputPath = process.env.VERCEL 
+          ? path.join(__dirname, '../temp', outputFilename)
+          : path.join(convertedDir, outputFilename);
+        
+        console.log('📁 Output path:', outputPath);
 
         // Handle Vercel environment (memory storage)
         let sharpInstance;
         if (process.env.VERCEL) {
           // For Vercel, use buffer directly
+          console.log('🌍 Using Vercel environment for image processing');
           const buffer = fs.readFileSync(file.path);
           sharpInstance = sharp(buffer);
         } else {
+          console.log('🌍 Using local environment for image processing');
           sharpInstance = sharp(file.path);
         }
 
@@ -216,18 +231,23 @@ router.post('/image', robustUpload, async (req, res) => {
         }
 
         // Convert based on format
+        console.log(`🔄 Converting to format: ${format.toLowerCase()}`);
         switch (format.toLowerCase()) {
           case 'jpeg':
           case 'jpg':
+            console.log('🔄 Using JPEG conversion');
             await sharpInstance.jpeg({ quality: parseInt(quality) }).toFile(outputPath);
             break;
           case 'png':
+            console.log('🔄 Using PNG conversion');
             await sharpInstance.png({ compressionLevel: Math.round((100 - quality) / 10) }).toFile(outputPath);
             break;
           case 'webp':
+            console.log('🔄 Using WebP conversion');
             await sharpInstance.webp({ quality: parseInt(quality) }).toFile(outputPath);
             break;
           default:
+            console.log(`🔄 Using default format conversion: ${format}`);
             await sharpInstance.toFormat(format).toFile(outputPath);
         }
 
@@ -480,10 +500,13 @@ router.post('/audio', robustUpload, async (req, res) => {
 router.get('/download/:filename', (req, res) => {
   try {
     const filename = req.params.filename;
-    const filepath = path.join(convertedDir, filename);
+    const filepath = process.env.VERCEL 
+      ? path.join(__dirname, '../temp', filename)
+      : path.join(convertedDir, filename);
     
     console.log('Download requested for:', filename);
     console.log('Looking for file at:', filepath);
+    console.log('Environment:', process.env.VERCEL ? 'Vercel' : 'Local');
     
     // List directory contents for debugging
     try {

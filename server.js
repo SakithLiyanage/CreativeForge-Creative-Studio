@@ -166,6 +166,7 @@ const routesLoaded = loadRoutes();
 
 // Fallback for failed route loading
 if (!routesLoaded) {
+  console.error('❌ Route loading failed, using fallback');
   app.get('/api/*', (req, res) => {
     res.status(503).json({ 
       error: 'Service temporarily unavailable',
@@ -173,6 +174,8 @@ if (!routesLoaded) {
       path: req.path
     });
   });
+} else {
+  console.log('✅ All routes loaded successfully');
 }
 
 // URL redirect for shortened URLs
@@ -237,11 +240,22 @@ app.get('/api/routes', (req, res) => {
     }
   });
   
+  // Test specific routes
+  const testRoutes = [
+    '/api/documents',
+    '/api/documents/pdf-to-docx',
+    '/api/documents/extract-text',
+    '/api/convert',
+    '/api/convert/image'
+  ];
+  
   res.json({
     message: 'Available API routes',
     routes: routes,
     routesLoaded: routesLoaded,
-    environment: process.env.VERCEL ? 'Vercel' : 'Local'
+    environment: process.env.VERCEL ? 'Vercel' : 'Local',
+    testRoutes: testRoutes,
+    totalRoutes: routes.length
   });
 });
 
