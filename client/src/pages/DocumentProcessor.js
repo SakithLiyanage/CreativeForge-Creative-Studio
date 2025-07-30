@@ -183,7 +183,7 @@ const DocumentProcessor = () => {
       console.log('📥 Starting download for:', filename);
       
       // Use fetch for better error handling
-      const response = await fetch(`/api/documents/download/${filename}`);
+      const response = await fetch(`${api.defaults.baseURL}/api/documents/download/${filename}`);
       
       if (!response.ok) {
         throw new Error(`Download failed: ${response.status}`);

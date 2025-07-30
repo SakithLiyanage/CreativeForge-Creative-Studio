@@ -175,6 +175,7 @@ router.post('/image', robustUpload, async (req, res) => {
   try {
     console.log('🖼️ Image conversion request received');
     console.log('Files received:', req.files?.length || 0);
+    console.log('Request body:', req.body);
     
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded for conversion' });
@@ -571,6 +572,19 @@ router.get('/files', (req, res) => {
       message: error.message
     });
   }
+});
+
+// Health check endpoint
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Convert route is working!',
+    endpoints: {
+      image: 'POST /api/convert/image',
+      video: 'POST /api/convert/video',
+      audio: 'POST /api/convert/audio'
+    }
+  });
 });
 
 module.exports = router;

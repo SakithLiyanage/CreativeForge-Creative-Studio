@@ -103,6 +103,7 @@ router.post('/merge-pdf', robustDocumentUpload, async (req, res) => {
   try {
     console.log('📄 PDF merge request received');
     console.log('Files received:', req.files?.length || 0);
+    console.log('Request body:', req.body);
     console.log('All files:', req.files?.map(f => ({ name: f.originalname, type: f.mimetype })));
     
     if (!req.files || req.files.length === 0) {
@@ -609,7 +610,26 @@ router.get('/download/:filename', (req, res) => {
 
 // Health check endpoint
 router.get('/', (req, res) => {
-  res.json({ success: true, message: 'Documents route is working!' });
+  res.json({
+    success: true,
+    message: 'Documents route is working!',
+    endpoints: {
+      'merge-pdf': 'POST /api/documents/merge-pdf',
+      'docx-to-pdf': 'POST /api/documents/docx-to-pdf',
+      'pdf-to-docx': 'POST /api/documents/pdf-to-docx',
+      'split': 'POST /api/documents/split',
+      'extract': 'POST /api/documents/extract'
+    }
+  });
+});
+
+// Test endpoint for debugging
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Documents test endpoint working',
+    timestamp: new Date().toISOString()
+  });
 });
 
 module.exports = router;
