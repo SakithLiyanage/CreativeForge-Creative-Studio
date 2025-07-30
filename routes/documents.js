@@ -17,10 +17,21 @@ if (!process.env.VERCEL && !fs.existsSync(documentsDir)) {
   console.log('📁 Created documents directory:', documentsDir);
 }
 
+// For Vercel, create a temporary directory
+if (process.env.VERCEL) {
+  const tempDir = path.join(__dirname, '../temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+    console.log('📁 Created temp directory for Vercel:', tempDir);
+  }
+}
+
 // Configure multer for document uploads (with Vercel compatibility)
 const storage = process.env.VERCEL ? multer.memoryStorage() : multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads/documents');
+    const uploadDir = process.env.VERCEL 
+      ? path.join(__dirname, '../temp')
+      : path.join(__dirname, '../uploads/documents');
     if (!process.env.VERCEL && !fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -273,7 +284,15 @@ router.post('/pdf-to-docx', robustDocumentUpload, async (req, res) => {
 
     // Try enhanced PDF parsing with better error handling
     try {
+      console.log('📁 File details:', {
+        path: file.path,
+        size: file.size,
+        mimetype: file.mimetype,
+        exists: fs.existsSync(file.path)
+      });
+      
       const pdfBuffer = fs.readFileSync(file.path);
+      console.log('📊 PDF buffer size:', pdfBuffer.length);
       
       // Use pdf-parse with more lenient options
       const pdfData = await pdfParse(pdfBuffer, {
@@ -281,6 +300,8 @@ router.post('/pdf-to-docx', robustDocumentUpload, async (req, res) => {
         normalizeWhitespace: false,
         disableCombineTextItems: false
       });
+      
+      console.log('📄 PDF parsed successfully, text length:', pdfData.text.length);
 
       // Create DOCX document
       const paragraphs = pdfData.text.split('\n')
@@ -305,11 +326,13 @@ router.post('/pdf-to-docx', robustDocumentUpload, async (req, res) => {
 
       // Generate DOCX buffer
       const buffer = await Packer.toBuffer(doc);
+      console.log('📄 DOCX buffer generated, size:', buffer.length);
       
       const outputFilename = path.basename(file.path, path.extname(file.path)) + '.docx';
       const outputPath = path.join(path.dirname(file.path), outputFilename);
       
       fs.writeFileSync(outputPath, buffer);
+      console.log('💾 DOCX file saved to:', outputPath);
 
       // Clean up input file
       if (fs.existsSync(file.path)) {
@@ -563,10 +586,13 @@ router.post('/extract-text', robustDocumentUpload, async (req, res) => {
 router.get('/download/:filename', (req, res) => {
   try {
     const filename = req.params.filename;
-    const filepath = path.join(__dirname, '../uploads/documents', filename);
+    const filepath = process.env.VERCEL 
+      ? path.join(__dirname, '../temp', filename)
+      : path.join(__dirname, '../uploads/documents', filename);
     
     console.log('📥 Document download request:', filename);
     console.log('📁 Looking for file at:', filepath);
+    console.log('🌍 Environment:', process.env.VERCEL ? 'Vercel' : 'Local');
     
     if (!fs.existsSync(filepath)) {
       console.error('❌ File not found:', filepath);

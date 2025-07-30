@@ -187,11 +187,25 @@ router.post('/image', robustUpload, async (req, res) => {
     for (const file of req.files) {
       try {
         console.log(`🔄 Converting ${file.originalname} to ${format}`);
+        console.log('📁 File details:', {
+          path: file.path,
+          size: file.size,
+          mimetype: file.mimetype,
+          exists: fs.existsSync(file.path)
+        });
         
         const outputFilename = `converted-${Date.now()}-${path.basename(file.originalname, path.extname(file.originalname))}.${format}`;
         const outputPath = path.join(convertedDir, outputFilename);
 
-        let sharpInstance = sharp(file.path);
+        // Handle Vercel environment (memory storage)
+        let sharpInstance;
+        if (process.env.VERCEL) {
+          // For Vercel, use buffer directly
+          const buffer = fs.readFileSync(file.path);
+          sharpInstance = sharp(buffer);
+        } else {
+          sharpInstance = sharp(file.path);
+        }
 
         // Apply resize if specified
         if (width || height) {
@@ -230,6 +244,9 @@ router.post('/image', robustUpload, async (req, res) => {
           dimensions: `${metadata.width}x${metadata.height}`,
           success: true
         });
+
+        console.log(`✅ Successfully converted ${file.originalname} to ${outputFilename}`);
+        console.log(`📊 Output file size: ${stats.size} bytes`);
 
         // Clean up input file
         if (fs.existsSync(file.path)) {
