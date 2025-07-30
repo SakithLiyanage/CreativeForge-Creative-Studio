@@ -116,49 +116,43 @@ app.get('/api/health', (req, res) => {
 
 // Routes with error handling
 const loadRoutes = () => {
-  try {
-    console.log('🔄 Loading test route...');
-    app.use('/api/test-route', require('./routes/test'));
-    console.log('✅ Test route loaded');
-    
-    console.log('🔄 Loading images route...');
-    app.use('/api/images', require('./routes/images'));
-    console.log('✅ Images route loaded');
-    
-    console.log('🔄 Loading videos route...');
-    app.use('/api/videos', require('./routes/videos'));
-    console.log('✅ Videos route loaded');
-    
-    console.log('🔄 Loading convert route...');
-    app.use('/api/convert', require('./routes/convert'));
-    console.log('✅ Convert route loaded');
-    
-    console.log('🔄 Loading analytics route...');
-    app.use('/api/analytics', require('./routes/analytics'));
-    console.log('✅ Analytics route loaded');
-    
-    console.log('🔄 Loading documents route...');
-    app.use('/api/documents', require('./routes/documents'));
-    console.log('✅ Documents route loaded');
-    
-    console.log('🔄 Loading QR route...');
-    app.use('/api/qr', require('./routes/qr'));
-    console.log('✅ QR route loaded');
-    
-    console.log('🔄 Loading URL shortener route...');
-    app.use('/api/url', require('./routes/urlShortener'));
-    console.log('✅ URL shortener route loaded');
-    
-    console.log('🔄 Loading temp email route...');
-    app.use('/api/temp-email', require('./routes/tempEmail'));
-    console.log('✅ Temp email route loaded');
-    
-    console.log('✅ All routes loaded successfully');
-    return true;
-  } catch (error) {
-    console.error('❌ Route loading error:', error);
-    return false;
+  const routeResults = [];
+  
+  const loadRoute = (name, path) => {
+    try {
+      console.log(`🔄 Loading ${name} route...`);
+      const route = require(path);
+      app.use(`/api/${name}`, route);
+      console.log(`✅ ${name} route loaded`);
+      routeResults.push({ name, success: true });
+      return true;
+    } catch (error) {
+      console.error(`❌ Failed to load ${name} route:`, error.message);
+      routeResults.push({ name, success: false, error: error.message });
+      return false;
+    }
+  };
+
+  // Load routes individually to prevent one failure from breaking all
+  loadRoute('test-route', './routes/test');
+  loadRoute('images', './routes/images');
+  loadRoute('videos', './routes/videos');
+  loadRoute('convert', './routes/convert');
+  loadRoute('analytics', './routes/analytics');
+  loadRoute('documents', './routes/documents');
+  loadRoute('qr', './routes/qr');
+  loadRoute('url', './routes/urlShortener');
+  loadRoute('temp-email', './routes/tempEmail');
+
+  const successfulRoutes = routeResults.filter(r => r.success);
+  const failedRoutes = routeResults.filter(r => !r.success);
+
+  console.log(`✅ Successfully loaded ${successfulRoutes.length} routes`);
+  if (failedRoutes.length > 0) {
+    console.log(`❌ Failed to load ${failedRoutes.length} routes:`, failedRoutes.map(r => r.name));
   }
+
+  return successfulRoutes.length > 0; // Return true if at least one route loaded
 };
 
 // Load routes
@@ -249,13 +243,20 @@ app.get('/api/routes', (req, res) => {
     '/api/convert/image'
   ];
   
+  // Check which test routes are actually available
+  const availableTestRoutes = testRoutes.filter(testRoute => {
+    return routes.some(route => route.includes(testRoute.replace('/api/', '')));
+  });
+  
   res.json({
     message: 'Available API routes',
     routes: routes,
     routesLoaded: routesLoaded,
     environment: process.env.VERCEL ? 'Vercel' : 'Local',
     testRoutes: testRoutes,
-    totalRoutes: routes.length
+    availableTestRoutes: availableTestRoutes,
+    totalRoutes: routes.length,
+    status: routes.length > 0 ? 'working' : 'no routes loaded'
   });
 });
 
